@@ -28,5 +28,9 @@ fn main() -> ImageResult<()>{
         .dither(image.clone())
         .save("data/stuckimono.png")?;
 
+    Dithers::AtkinsonMono
+        .dither(image.clone())
+        .save("data/atkinsonmono.png")?;
+
     Ok(())
 }
