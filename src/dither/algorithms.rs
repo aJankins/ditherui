@@ -11,7 +11,7 @@ use super::{
         sierra_mono_dither,
         two_row_sierra_mono_dither,
         sierra_lite_mono_dither
-    }};
+    }, bayer::bayer_mono_dither};
 
 pub enum Algorithms {
     BasicMono,
@@ -23,6 +23,7 @@ pub enum Algorithms {
     SierraMono,
     SierraTwoRowMono,
     SierraLiteMono,
+    BayerMono(usize),
 }
 
 impl Algorithms {
@@ -37,6 +38,7 @@ impl Algorithms {
             Self::SierraMono => sierra_mono_dither(image),
             Self::SierraTwoRowMono => two_row_sierra_mono_dither(image),
             Self::SierraLiteMono => sierra_lite_mono_dither(image),
+            Self::BayerMono(n) => bayer_mono_dither(image, *n),
         }
     }
 }

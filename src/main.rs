@@ -48,5 +48,21 @@ fn main() -> ImageResult<()>{
         .dither(image.clone())
         .save("data/sierra-lite-mono.png")?;
 
+    Dithers::BayerMono(2)
+        .dither(image.clone())
+        .save("data/bayer-2x2-mono.png")?;
+
+    Dithers::BayerMono(4)
+        .dither(image.clone())
+        .save("data/bayer-4x4-mono.png")?;
+
+    Dithers::BayerMono(8)
+        .dither(image.clone())
+        .save("data/bayer-8x8-mono.png")?;
+
+    Dithers::BayerMono(16)
+        .dither(image.clone())
+        .save("data/bayer-16x16-mono.png")?;
+
     Ok(())
 }

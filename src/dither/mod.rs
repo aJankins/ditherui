@@ -7,3 +7,4 @@ mod stucki;
 mod atkinson;
 mod burkes;
 mod sierra;
+mod bayer;
