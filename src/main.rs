@@ -14,23 +14,39 @@ fn main() -> ImageResult<()>{
     
     Dithers::BasicMono
         .dither(image.clone())
-        .save("data/basicmono.png")?;
+        .save("data/basic-mono.png")?;
     
     Dithers::FloydSteinbergMono
         .dither(image.clone())
-        .save("data/floydsteinbergmono.png")?;
+        .save("data/floyd-steinberg-mono.png")?;
 
     Dithers::JarvisJudiceNinkeMono
         .dither(image.clone())
-        .save("data/jarvisjudiceninkemono.png")?;
+        .save("data/jarvis-judice-ninke-mono.png")?;
 
     Dithers::StuckiMono
         .dither(image.clone())
-        .save("data/stuckimono.png")?;
+        .save("data/stucki-mono.png")?;
 
     Dithers::AtkinsonMono
         .dither(image.clone())
-        .save("data/atkinsonmono.png")?;
+        .save("data/atkinson-mono.png")?;
+
+    Dithers::BurkesMono
+        .dither(image.clone())
+        .save("data/burkes-mono.png")?;
+
+    Dithers::SierraMono
+        .dither(image.clone())
+        .save("data/sierra-mono.png")?;
+
+    Dithers::SierraTwoRowMono
+        .dither(image.clone())
+        .save("data/sierra-two-row-mono.png")?;
+
+    Dithers::SierraLiteMono
+        .dither(image.clone())
+        .save("data/sierra-lite-mono.png")?;
 
     Ok(())
 }
