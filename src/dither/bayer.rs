@@ -1,11 +1,7 @@
-use std::ops::Mul;
-
 use image::{DynamicImage, Pixel};
 use ndarray::{Array, Dim, concatenate, Axis};
 
 use crate::utils::u8ops::average;
-
-const DITHER_MATRIX_2x2: [f64; 4] = [-0.375, 0.125, 0.375, -0.125];
 
 fn dither_matrix(n: usize) -> Array<f64, Dim<[usize; 2]>> {
     if n == 1 { return Array::<f64, _>::zeros((1, 1)) }
@@ -35,8 +31,6 @@ pub fn bayer_mono_dither(image: DynamicImage, dither_size: usize) -> DynamicImag
 
         let i = xs % dither_size;
         let j = ys % dither_size;
-
-        let dither = DITHER_MATRIX_2x2[(xs & 1) + (ys & 1) * 2];
 
         let mono = average(pixel.channels()) as u8;
         let threshold = if mono > (*matrix.get((i, j)).unwrap_or(&0.0) as u8) { 255 } else { 0 };

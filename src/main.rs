@@ -3,15 +3,30 @@ mod image;
 mod utils;
 
 pub use dither::algorithms::Algorithms as Dithers;
-use ::image::ImageResult;
+use ::image::{ImageResult, DynamicImage};
 
-use crate::image::load_image;
+use crate::{image::load_image, dither::cartesian_distance};
 
 fn main() -> ImageResult<()>{
     println!("Hello, world!");
 
     let image = load_image("data/original.png");
-    
+
+    let palette = &[
+        (255, 255, 255),
+        (255, 0, 0),
+        (0, 255, 0),
+        (0, 0, 255),
+        (0, 0, 0)
+    ];
+
+    // mono(&image)?;
+    colour(&image, palette)?;
+
+    Ok(())
+}
+
+fn mono(image: &DynamicImage) -> ImageResult<()> {
     Dithers::BasicMono
         .dither(image.clone())
         .save("data/basic-mono.png")?;
@@ -63,6 +78,14 @@ fn main() -> ImageResult<()>{
     Dithers::BayerMono(16)
         .dither(image.clone())
         .save("data/bayer-16x16-mono.png")?;
+
+    Ok(())
+}
+
+fn colour(image: &DynamicImage, palette: &[(u8, u8, u8)]) -> ImageResult<()> {
+    Dithers::Basic(palette)
+        .dither(image.clone())
+        .save("data/basic.png")?;
 
     Ok(())
 }
