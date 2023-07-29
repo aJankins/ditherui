@@ -11,7 +11,7 @@ use super::{
         sierra_mono_dither,
         two_row_sierra_mono_dither,
         sierra_lite_mono_dither
-    }, bayer::bayer_mono_dither};
+    }, bayer::bayer_mono_dither, pixel::RgbPixel};
 
 pub enum Algorithms<'a> {
     // Mono
@@ -27,7 +27,7 @@ pub enum Algorithms<'a> {
     BayerMono(usize),
 
     // Colour
-    Basic(&'a [(u8, u8, u8)]),
+    Basic(&'a [RgbPixel]),
 }
 
 impl<'a> Algorithms<'a> {

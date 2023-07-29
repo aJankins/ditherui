@@ -5,23 +5,44 @@ mod utils;
 pub use dither::algorithms::Algorithms as Dithers;
 use ::image::{ImageResult, DynamicImage};
 
-use crate::{image::load_image, dither::cartesian_distance};
+use crate::{image::load_image, dither::pixel::RgbPixel};
 
 fn main() -> ImageResult<()>{
     println!("Hello, world!");
 
     let image = load_image("data/original.png");
 
-    let palette = &[
+    let palette: &[RgbPixel] = &[
         (255, 255, 255),
         (255, 0, 0),
         (0, 255, 0),
         (0, 0, 255),
-        (0, 0, 0)
-    ];
+        (255, 255, 0),
+        (0, 255, 255),
+        (255, 0, 255),
 
-    // mono(&image)?;
+        (128, 128, 0),
+        (0, 128, 128),
+        (128, 0, 128),
+
+        (0, 0, 0)
+    ].map(|tuple| tuple.into());
+
+    // let mut palette = vec![];
+
+    // for r in 0..5 {
+    //     for g in 0..5 {
+    //         for b in 0..5 {
+    //             palette.push((r*50, g*50, b*50))
+    //         }
+    //     }
+    // }
+
+    mono(&image)?;
     colour(&image, palette)?;
+
+    // let closest = get_closest_color_to((100,150,35), palette);
+    // println!("CLOSEST COLOUR: {:#?}", closest);
 
     Ok(())
 }
@@ -82,7 +103,7 @@ fn mono(image: &DynamicImage) -> ImageResult<()> {
     Ok(())
 }
 
-fn colour(image: &DynamicImage, palette: &[(u8, u8, u8)]) -> ImageResult<()> {
+fn colour(image: &DynamicImage, palette: &[RgbPixel]) -> ImageResult<()> {
     Dithers::Basic(palette)
         .dither(image.clone())
         .save("data/basic.png")?;
