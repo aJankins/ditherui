@@ -56,90 +56,93 @@ macro_rules! error_prop_fn {
     };
 }
 
-pub mod floydsteinberg {
-    use image::DynamicImage;
-    use crate::{error_prop_fn, dither::errorpropagate::error_propagate_through_pixels};
+macro_rules! error_prop_mod {
+    ($mod_name:ident, {$($fn_name:ident $matrix_name:ident [$($matrix:tt)*]{$error_amnt:expr, $portion_amnt:expr})*}) => {
+        pub mod $mod_name {
+            use image::DynamicImage;
+            use crate::{error_prop_fn, dither::errorpropagate::error_propagate_through_pixels};        
 
-    static MATRIX: [(i8, i8, u8); 4] = [
-                            (1, 0, 7),
-        (-1, 1, 5),(0, 1, 3),(1, 1, 1),
-    ];
+            $(
+                static $matrix_name: [(i8, i8, u8); $error_amnt] = [$($matrix)*];
+            )*
 
-    error_prop_fn!(floyd_steinberg_mono_dither, MATRIX, 16);
+            $(
+                error_prop_fn!($fn_name, $matrix_name, $portion_amnt);
+            )*
+        }
+    };
 }
 
-pub mod jarvisjudiceninke {
-    use image::DynamicImage;
-    use crate::{error_prop_fn, dither::errorpropagate::error_propagate_through_pixels};
+error_prop_mod!(
+    floydsteinberg,
+    { 
+        floyd_steinberg_mono_dither MATRIX [
+                                 (1, 0, 7),
+            (-1, 1, 5),(0, 1, 3),(1, 1, 1),
+        ]{4, 16}
+    }
+);
 
-    static MATRIX: [(i8, i8, u8); 12] = [
-                                        (1, 0, 7),(2, 0, 5),
-        (-2, 1, 3),(-1, 1, 5),(0, 1, 7),(1, 1, 5),(2, 1, 3),
-        (-2, 2, 1),(-1, 2, 3),(0, 2, 5),(1, 2, 3),(2, 2, 1),
-    ];
+error_prop_mod!(
+    jarvisjudiceninke,
+    { 
+        jarvis_judice_ninke_mono_dither MATRIX [
+                                            (1, 0, 7),(2, 0, 5),
+            (-2, 1, 3),(-1, 1, 5),(0, 1, 7),(1, 1, 5),(2, 1, 3),
+            (-2, 2, 1),(-1, 2, 3),(0, 2, 5),(1, 2, 3),(2, 2, 1),
+        ]{12, 48}
+    }
+);
 
-    error_prop_fn!(jarvis_judice_ninke_mono_dither, MATRIX, 48);
-}
+error_prop_mod!(
+    atkinson,
+    { 
+        atkinson_mono_dither MATRIX [
+                                 (1, 0, 1),(2, 0, 1),
+            (-1, 1, 1),(0, 1, 1),(1, 1, 1),
+                       (0, 2, 1)
+        ]{6, 8}
+    }
+);
 
-pub mod atkinson {
-    use image::DynamicImage;
-    use crate::{error_prop_fn, dither::errorpropagate::error_propagate_through_pixels};
+error_prop_mod!(
+    burkes,
+    { 
+        burkes_mono_dither MATRIX [
+                                               (1, 0, 8), (2, 0, 4),
+            (-2, 1, 2), (-1, 1, 4), (0, 1, 8), (1, 1, 4), (2, 1, 2),
+        ]{7, 32}
+    }
+);
 
-    static MATRIX: [(i8, i8, u8); 6] = [
-                               (1, 0, 1), (2, 0, 1),
-        (-1, 1, 1), (0, 1, 1), (1, 1, 1), 
-                    (0, 2, 1)
-    ];
+error_prop_mod!(
+    stucki,
+    { 
+        stucki_mono_dither MATRIX [
+                                            (1, 0, 8),(2, 0, 4),
+            (-2, 1, 2),(-1, 1, 4),(0, 1, 8),(1, 1, 4),(2, 1, 2),
+            (-2, 2, 1),(-1, 2, 2),(0, 2, 4),(1, 2, 2),(2, 2, 1),
+        ]{12, 42}
+    }
+);
 
-    error_prop_fn!(atkinson_mono_dither, MATRIX, 8);
-}
+error_prop_mod!(
+    sierra,
+    {
+        sierra_mono_dither MATRIX [
+                                            (1, 0, 5),(2, 0, 3),
+            (-2, 1, 2),(-1, 1, 4),(0, 1, 5),(1, 1, 4),(2, 1, 2),
+                       (-1, 2, 2),(0, 2, 3),(1, 2, 2),
+        ]{10, 32}
 
-pub mod burkes {
-    use image::DynamicImage;
-    use crate::{error_prop_fn, dither::errorpropagate::error_propagate_through_pixels};
+        two_row_sierra_mono_dither TWO_ROW_MATRIX [
+                                            (1, 0, 4),(2, 0, 3),
+            (-2, 1, 1),(-1, 1, 2),(0, 1, 3),(1, 1, 2),(2, 1, 1),
+        ]{7, 16}
 
-    static MATRIX: [(i8, i8, u8); 7] = [
-                                           (1, 0, 8), (2, 0, 4),
-        (-2, 1, 2), (-1, 1, 4), (0, 1, 8), (1, 1, 4), (2, 1, 2),
-    ];
-
-    error_prop_fn!(burkes_mono_dither, MATRIX, 32);
-}
-
-pub mod stucki {
-    use image::DynamicImage;
-    use crate::{error_prop_fn, dither::errorpropagate::error_propagate_through_pixels};
-
-    static MATRIX: [(i8, i8, u8); 12] = [
-                                        (1, 0, 8),(2, 0, 4),
-        (-2, 1, 2),(-1, 1, 4),(0, 1, 8),(1, 1, 4),(2, 1, 2),
-        (-2, 2, 1),(-1, 2, 2),(0, 2, 4),(1, 2, 2),(2, 2, 1),
-    ];
-
-    error_prop_fn!(stucki_mono_dither, MATRIX, 42);
-}
-
-pub mod sierra {
-    use image::DynamicImage;
-    use crate::{error_prop_fn, dither::errorpropagate::error_propagate_through_pixels};
-
-    static MATRIX: [(i8, i8, u8); 10] = [
-                                        (1, 0, 5),(2, 0, 3),
-        (-2, 1, 2),(-1, 1, 4),(0, 1, 5),(1, 1, 4),(2, 1, 2),
-                   (-1, 2, 2),(0, 2, 3),(1, 2, 2),
-    ];
-
-    static TWO_ROW_MATRIX: [(i8, i8, u8); 7] = [
-                                        (1, 0, 4),(2, 0, 3),
-        (-2, 1, 1),(-1, 1, 2),(0, 1, 3),(1, 1, 2),(2, 1, 1),
-    ];
-
-    static LITE_MATRIX: [(i8, i8, u8); 3] = [
-                             (1, 0, 2),
-        (-1, 1, 1),(0, 1, 1)
-    ];
-
-    error_prop_fn!(sierra_mono_dither, MATRIX, 32);
-    error_prop_fn!(two_row_sierra_mono_dither, TWO_ROW_MATRIX, 16);
-    error_prop_fn!(sierra_lite_mono_dither, LITE_MATRIX, 4);
-}
+        sierra_lite_mono_dither LITE_MATRIX [
+                                 (1, 0, 2),
+            (-1, 1, 1),(0, 1, 1)
+        ]{3, 4}
+    }
+);

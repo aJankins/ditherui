@@ -50,45 +50,45 @@ fn mono(image: &DynamicImage) -> ImageResult<()> {
         .dither(image.clone())
         .save("data/jarvis-judice-ninke-mono.png")?;
 
-    // Dithers::StuckiMono
-    //     .dither(image.clone())
-    //     .save("data/stucki-mono.png")?;
+    Dithers::StuckiMono
+        .dither(image.clone())
+        .save("data/stucki-mono.png")?;
 
-    // Dithers::AtkinsonMono
-    //     .dither(image.clone())
-    //     .save("data/atkinson-mono.png")?;
+    Dithers::AtkinsonMono
+        .dither(image.clone())
+        .save("data/atkinson-mono.png")?;
 
-    // Dithers::BurkesMono
-    //     .dither(image.clone())
-    //     .save("data/burkes-mono.png")?;
+    Dithers::BurkesMono
+        .dither(image.clone())
+        .save("data/burkes-mono.png")?;
 
-    // Dithers::SierraMono
-    //     .dither(image.clone())
-    //     .save("data/sierra-mono.png")?;
+    Dithers::SierraMono
+        .dither(image.clone())
+        .save("data/sierra-mono.png")?;
 
-    // Dithers::SierraTwoRowMono
-    //     .dither(image.clone())
-    //     .save("data/sierra-two-row-mono.png")?;
+    Dithers::SierraTwoRowMono
+        .dither(image.clone())
+        .save("data/sierra-two-row-mono.png")?;
 
-    // Dithers::SierraLiteMono
-    //     .dither(image.clone())
-    //     .save("data/sierra-lite-mono.png")?;
+    Dithers::SierraLiteMono
+        .dither(image.clone())
+        .save("data/sierra-lite-mono.png")?;
 
-    // Dithers::BayerMono(2)
-    //     .dither(image.clone())
-    //     .save("data/bayer-2x2-mono.png")?;
+    Dithers::BayerMono(2)
+        .dither(image.clone())
+        .save("data/bayer-2x2-mono.png")?;
 
-    // Dithers::BayerMono(4)
-    //     .dither(image.clone())
-    //     .save("data/bayer-4x4-mono.png")?;
+    Dithers::BayerMono(4)
+        .dither(image.clone())
+        .save("data/bayer-4x4-mono.png")?;
 
-    // Dithers::BayerMono(8)
-    //     .dither(image.clone())
-    //     .save("data/bayer-8x8-mono.png")?;
+    Dithers::BayerMono(8)
+        .dither(image.clone())
+        .save("data/bayer-8x8-mono.png")?;
 
-    // Dithers::BayerMono(16)
-    //     .dither(image.clone())
-    //     .save("data/bayer-16x16-mono.png")?;
+    Dithers::BayerMono(16)
+        .dither(image.clone())
+        .save("data/bayer-16x16-mono.png")?;
 
     Ok(())
 }
