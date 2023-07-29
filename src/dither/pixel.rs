@@ -1,6 +1,6 @@
 use image::{Rgb, Pixel};
 
-use crate::utils::u8ops::average;
+use crate::utils::numops::average;
 
 #[derive(Debug)]
 pub struct MonoPixel(u8);

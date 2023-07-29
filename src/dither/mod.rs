@@ -1,12 +1,7 @@
 pub mod algorithms;
 pub mod pixel;
 pub mod palettes;
+pub mod errorpropagate;
 
 mod basic;
-mod floydsteinberg;
-mod jarvisjudiceninke;
-mod stucki;
-mod atkinson;
-mod burkes;
-mod sierra;
 mod bayer;

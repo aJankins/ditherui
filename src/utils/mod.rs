@@ -1,1 +1,1 @@
-pub mod u8ops;
+pub mod numops;

@@ -1,17 +1,7 @@
 use image::DynamicImage;
 
 use super::{
-    basic::{basic_mono_dither, basic_colour_dither},
-    stucki::stucki_mono_dither,
-    atkinson::atkinson_mono_dither,
-    burkes::burkes_mono_dither,
-    floydsteinberg::floyd_steinberg_mono_dither,
-    jarvisjudiceninke::jarvis_judice_ninke_mono_dither,
-    sierra::{
-        sierra_mono_dither,
-        two_row_sierra_mono_dither,
-        sierra_lite_mono_dither
-    }, bayer::{bayer_mono_dither, bayer_dither}, pixel::RgbPixel};
+    basic::{basic_mono_dither, basic_colour_dither}, bayer::{bayer_mono_dither, bayer_dither}, pixel::RgbPixel, errorpropagate::{floydsteinberg::floyd_steinberg_mono_dither, jarvisjudiceninke::jarvis_judice_ninke_mono_dither, stucki::stucki_mono_dither, atkinson::atkinson_mono_dither, burkes::burkes_mono_dither, sierra::{sierra_mono_dither, two_row_sierra_mono_dither, sierra_lite_mono_dither}}};
 
 pub enum Algorithms<'a> {
     // Mono

@@ -6,6 +6,9 @@ pub fn average(nums: &[u8]) -> f64 {
     return sum(nums) as f64 / nums.len() as f64
 }
 
-pub fn sq_u8(num: &u8) -> u64 {
-    (*num as u64).pow(2)
+pub fn map_to_2d(cell_no: u64, xdim: u32) -> (u32, u32) {
+    (
+        (cell_no % xdim as u64) as u32,
+        (cell_no / xdim as u64) as u32
+    )
 }

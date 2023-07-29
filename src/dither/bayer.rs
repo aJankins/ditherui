@@ -1,7 +1,7 @@
 use image::{DynamicImage, Pixel};
 use ndarray::{Array, Dim, concatenate, Axis};
 
-use crate::utils::u8ops::average;
+use crate::utils::numops::average;
 
 use super::pixel::RgbPixel;
 
