@@ -121,6 +121,7 @@ dependencies = [
  "image",
  "ndarray",
  "num",
+ "once_cell",
 ]
 
 [[package]]
