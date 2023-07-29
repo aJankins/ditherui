@@ -116,8 +116,10 @@ impl RgbPixel {
     }
 
     pub fn get_difference(&self, other: &RgbPixel) -> f64 {
-        // self._redmean_diff(other)
         self._weighed_euclidean_diff(other)
+
+        // kept incase
+        // self._redmean_diff(other)
         // self._weighted_cartesian_diff(other)
         // self._naive_diff(other)
     }
