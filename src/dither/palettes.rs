@@ -2,6 +2,18 @@ use once_cell::sync::Lazy;
 
 use super::pixel::RgbPixel;
 
+pub static EIGHT_BIT: Lazy<Vec<RgbPixel>> = Lazy::new(|| {
+    vec![
+        "000000",
+        "FF0000","00FF00","0000FF",
+        "FFFF00","00FFFF","FF00FF",
+        "FFFFFF"
+    ]
+    .into_iter()
+    .map(|color| color.into())
+    .collect()
+});
+
 pub static WEB_SAFE: Lazy<Vec<RgbPixel>> = Lazy::new(|| {
     vec![
         "000000","000033","000066","000099","0000cc","0000ff",
