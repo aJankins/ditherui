@@ -3,6 +3,9 @@
 /// dither
 pub mod dither;
 
+/// colour
+pub mod colour;
+
 /// image
 pub mod image;
 
