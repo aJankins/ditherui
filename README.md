@@ -6,8 +6,8 @@ Might become a library, or a tool. I'd like to provide a good GUI for it at leas
 
 Currently supports the following algorithms:
 
-|            **Name** |                                  *2-bit* |                    *RGB (Web-safe)* | *RGB (8-bit)* |
-| ------------------: | ---------------------------------------: | ----------------------------------: | :-----------: |
+|            **Name** |                                  *2-bit* |                             *RGB (Web-safe)* |                             *RGB (8-bit)* |
+| ------------------: | ---------------------------------------: | -------------------------------------------: | ----------------------------------------: |
 |               Basic |               ![](./data/basic-mono.png) |               ![](./data/basic-web-safe.png) |               ![](./data/basic-8-bit.png) |
 |     Floyd-Steinberg |     ![](./data/floyd-steinberg-mono.png) |     ![](./data/floyd-steinberg-web-safe.png) |     ![](./data/floyd-steinberg-8-bit.png) |
 | Jarvis-Judice-Ninke | ![](./data/jarvis-judice-ninke-mono.png) | ![](./data/jarvis-judice-ninke-web-safe.png) | ![](./data/jarvis-judice-ninke-8-bit.png) |
