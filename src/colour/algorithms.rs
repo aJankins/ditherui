@@ -1,5 +1,7 @@
 use image::DynamicImage;
 
+use crate::ImageEffect;
+
 use super::pixel::rgb::RgbPixel;
 pub enum Algorithms<'a> {
     RotateHue(f32),
@@ -9,8 +11,8 @@ pub enum Algorithms<'a> {
     GradientMap(&'a [(RgbPixel, f32)]),
 }
 
-impl<'a> Algorithms<'a> {
-    pub fn apply(&self, image: DynamicImage) -> DynamicImage {
+impl<'a> ImageEffect<DynamicImage> for Algorithms<'a> {
+    fn apply(&self, image: DynamicImage) -> DynamicImage {
         match self {
             Self::RotateHue(degrees) => change_hue(image, *degrees),
             Self::Contrast(amount) => apply_contrast(image, *amount),

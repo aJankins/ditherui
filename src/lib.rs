@@ -1,5 +1,7 @@
 //! This crate provides functionality
 
+use image::DynamicImage;
+
 /// dither
 pub mod dither;
 
@@ -9,18 +11,36 @@ pub mod colour;
 /// utils
 pub mod utils;
 
+pub trait ImageEffect<T: ?Sized> {
+    fn apply(&self, image: T) -> T;
+}
+
+pub trait AdjustableImage {
+    fn apply(self, effect: impl ImageEffect<Self>) -> Self;
+}
+
+impl AdjustableImage for DynamicImage {
+    fn apply(self, effect: impl ImageEffect<Self>) -> Self {
+        effect.apply(self)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use image::{ImageResult, DynamicImage};
 
-    use crate::{utils::image::load_image, colour::{pixel::rgb::RgbPixel, palettes}};
+    use crate::{
+        utils::image::load_image,
+        colour::{pixel::rgb::RgbPixel, palettes},
+        AdjustableImage
+    };
 
     use super::dither::algorithms::Algorithms as Dithers;
-    use super::colour::algorithms::Algorithms as ColourProcessing;
+    use super::colour::algorithms::Algorithms as Colours;
 
     #[test]
     fn dither_test() -> ImageResult<()>{    
-        let image = load_image("data/original.png");
+        let image = load_image("data/input.png");
     
         let palette: &[RgbPixel] = &[
             "FFFFFF",
@@ -38,10 +58,10 @@ mod test {
         // ].map(|tuple| tuple.into());
 
         
-        // mono(&image)?;
-        // colour_websafe(&image)?;                              // takes a long time due to large palette
-        // colour_eightbit(&image)?;                             // significantly faster
-        // colour(&image, palette, Some("-custom-palette"))?;    // custom palettes, uncomment a palette above for examples
+        mono(&image)?;
+        colour_websafe(&image)?;                              // takes a long time due to large palette
+        colour_eightbit(&image)?;                             // significantly faster
+        colour(&image, palette, Some("-custom-palette"))?;    // custom palettes, uncomment a palette above for examples
     
         Ok(())
     }
@@ -50,60 +70,41 @@ mod test {
     fn colour_processing_test() -> ImageResult<()> {
         let image = load_image("data/original.png");
 
-        ColourProcessing::RotateHue(180.0)
-            .apply(image.clone())
-            .save("data/rotate-hue-180.png")?;
+        image.clone().apply(Colours::RotateHue(180.0)).save("data/colour/rotate-hue-180.png")?;
+        image.clone().apply(Colours::Brighten( 0.2)).save("data/colour/brighten+0.2.png")?;
+        image.clone().apply(Colours::Brighten(-0.2)).save("data/colour/brighten-0.2.png")?;
+        image.clone().apply(Colours::Saturate( 0.2)).save("data/colour/saturate+0.2.png")?;
+        image.clone().apply(Colours::Saturate(-0.2)).save("data/colour/saturate-0.2.png")?;
+        image.clone().apply(Colours::Contrast( 0.5)).save("data/colour/contrast.0.5.png")?;
+        image.clone().apply(Colours::Contrast( 1.5)).save("data/colour/contrast.0.2.png")?;
 
-        ColourProcessing::Brighten(0.2)
-            .apply(image.clone())
-            .save("data/brighten+0.2.png")?;
-
-        ColourProcessing::Brighten(-0.2)
-            .apply(image.clone())
-            .save("data/brighten-0.2.png")?;
-
-        ColourProcessing::Saturate(0.2)
-            .apply(image.clone())
-            .save("data/saturate+0.2.png")?;
-
-        ColourProcessing::Saturate(-0.2)
-            .apply(image.clone())
-            .save("data/saturate-0.2.png")?;
-
-        ColourProcessing::Contrast(0.5)
-            .apply(image.clone())
-            .save("data/contrast.0.5.png")?;
-
-        ColourProcessing::Contrast(1.5)
-            .apply(image.clone())
-            .save("data/contrast.1.5.png")?;
-
-        ColourProcessing::GradientMap(&[
+        let gradient_map = [
             ("000000".into(), 0.00),
             ("0000FF".into(), 0.25),
             ("FF0000".into(), 0.50),
             ("00FF00".into(), 0.75),
             ("FFFFFF".into(), 1.00),
-        ]).apply(image.clone())
-            .save("data/gradient-mapped.png")?;
+        ];
+
+        image.clone().apply(Colours::GradientMap(&gradient_map)).save("data/colour/gradient-mapped.png")?;
 
         Ok(())
     }
 
     fn mono(image: &DynamicImage) -> ImageResult<()> {
-        Dithers::BasicMono.dither(image.clone()).save("data/basic-mono.png")?;
-        Dithers::FloydSteinbergMono.dither(image.clone()).save("data/floyd-steinberg-mono.png")?;
-        Dithers::JarvisJudiceNinkeMono.dither(image.clone()).save("data/jarvis-judice-ninke-mono.png")?;
-        Dithers::StuckiMono.dither(image.clone()).save("data/stucki-mono.png")?;
-        Dithers::AtkinsonMono.dither(image.clone()).save("data/atkinson-mono.png")?;
-        Dithers::BurkesMono.dither(image.clone()).save("data/burkes-mono.png")?;
-        Dithers::SierraMono.dither(image.clone()).save("data/sierra-mono.png")?;
-        Dithers::SierraTwoRowMono.dither(image.clone()).save("data/sierra-two-row-mono.png")?;
-        Dithers::SierraLiteMono.dither(image.clone()).save("data/sierra-lite-mono.png")?;
-        Dithers::BayerMono(2).dither(image.clone()).save("data/bayer-2x2-mono.png")?;
-        Dithers::BayerMono(4).dither(image.clone()).save("data/bayer-4x4-mono.png")?;
-        Dithers::BayerMono(8).dither(image.clone()).save("data/bayer-8x8-mono.png")?;
-        Dithers::BayerMono(16).dither(image.clone()).save("data/bayer-16x16-mono.png")?;
+        image.clone().apply(Dithers::BasicMono).save("data/dither/basic-mono.png")?;
+        image.clone().apply(Dithers::FloydSteinbergMono).save("data/dither/floyd-steinberg-mono.png")?;
+        image.clone().apply(Dithers::JarvisJudiceNinkeMono).save("data/dither/jarvis-judice-ninke-mono.png")?;
+        image.clone().apply(Dithers::StuckiMono).save("data/dither/stucki-mono.png")?;
+        image.clone().apply(Dithers::AtkinsonMono).save("data/dither/atkinson-mono.png")?;
+        image.clone().apply(Dithers::BurkesMono).save("data/dither/burkes-mono.png")?;
+        image.clone().apply(Dithers::SierraMono).save("data/dither/sierra-mono.png")?;
+        image.clone().apply(Dithers::SierraTwoRowMono).save("data/dither/sierra-two-row-mono.png")?;
+        image.clone().apply(Dithers::SierraLiteMono).save("data/dither/sierra-lite-mono.png")?;
+        image.clone().apply(Dithers::BayerMono(2)).save("data/dither/bayer-2x2-mono.png")?;
+        image.clone().apply(Dithers::BayerMono(4)).save("data/dither/bayer-4x4-mono.png")?;
+        image.clone().apply(Dithers::BayerMono(8)).save("data/dither/bayer-8x8-mono.png")?;
+        image.clone().apply(Dithers::BayerMono(16)).save("data/dither/bayer-16x16-mono.png")?;
         Ok(())
     }
 
@@ -117,19 +118,19 @@ mod test {
     
     fn colour(image: &DynamicImage, palette: &[RgbPixel], opt_postfix: Option<&str>) -> ImageResult<()> {
         let postfix = opt_postfix.unwrap_or("");
-        Dithers::Basic(palette).dither(image.clone()).save(format!("data/basic{}.png", postfix))?;
-        Dithers::FloydSteinberg(palette).dither(image.clone()).save(format!("data/floyd-steinberg{}.png", postfix))?;
-        Dithers::JarvisJudiceNinke(palette).dither(image.clone()).save(format!("data/jarvis-judice-ninke{}.png", postfix))?;
-        Dithers::Stucki(palette).dither(image.clone()).save(format!("data/stucki{}.png", postfix))?;
-        Dithers::Atkinson(palette).dither(image.clone()).save(format!("data/atkinson{}.png", postfix))?;
-        Dithers::Burkes(palette).dither(image.clone()).save(format!("data/burkes{}.png", postfix))?;
-        Dithers::Sierra(palette).dither(image.clone()).save(format!("data/sierra{}.png", postfix))?;
-        Dithers::SierraTwoRow(palette).dither(image.clone()).save(format!("data/sierra-two-row{}.png", postfix))?;
-        Dithers::SierraLite(palette).dither(image.clone()).save(format!("data/sierra-lite{}.png", postfix))?;
-        Dithers::Bayer(2, palette).dither(image.clone()).save(format!("data/bayer-2x2{}.png", postfix))?;
-        Dithers::Bayer(4, palette).dither(image.clone()).save(format!("data/bayer-4x4{}.png", postfix))?;
-        Dithers::Bayer(8, palette).dither(image.clone()).save(format!("data/bayer-8x8{}.png", postfix))?;
-        Dithers::Bayer(16, palette).dither(image.clone()).save(format!("data/bayer-16x16{}.png", postfix))?;
+        image.clone().apply(Dithers::Basic(palette)).save(format!("data/dither/basic{}.png", postfix))?;
+        image.clone().apply(Dithers::FloydSteinberg(palette)).save(format!("data/dither/floyd-steinberg{}.png", postfix))?;
+        image.clone().apply(Dithers::JarvisJudiceNinke(palette)).save(format!("data/dither/jarvis-judice-ninke{}.png", postfix))?;
+        image.clone().apply(Dithers::Stucki(palette)).save(format!("data/dither/stucki{}.png", postfix))?;
+        image.clone().apply(Dithers::Atkinson(palette)).save(format!("data/dither/atkinson{}.png", postfix))?;
+        image.clone().apply(Dithers::Burkes(palette)).save(format!("data/dither/burkes{}.png", postfix))?;
+        image.clone().apply(Dithers::Sierra(palette)).save(format!("data/dither/sierra{}.png", postfix))?;
+        image.clone().apply(Dithers::SierraTwoRow(palette)).save(format!("data/dither/sierra-two-row{}.png", postfix))?;
+        image.clone().apply(Dithers::SierraLite(palette)).save(format!("data/dither/sierra-lite{}.png", postfix))?;
+        image.clone().apply(Dithers::Bayer(2, palette)).save(format!("data/dither/bayer-2x2{}.png", postfix))?;
+        image.clone().apply(Dithers::Bayer(4, palette)).save(format!("data/dither/bayer-4x4{}.png", postfix))?;
+        image.clone().apply(Dithers::Bayer(8, palette)).save(format!("data/dither/bayer-8x8{}.png", postfix))?;
+        image.clone().apply(Dithers::Bayer(16, palette)).save(format!("data/dither/bayer-16x16{}.png", postfix))?;
         Ok(())
     }
 }
