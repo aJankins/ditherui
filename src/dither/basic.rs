@@ -1,6 +1,6 @@
 use image::DynamicImage;
 
-use crate::colour::pixel::{MonoPixel, TWO_BIT, RgbPixel};
+use crate::colour::pixel::{mono::{MonoPixel, TWO_BIT}, rgb::RgbPixel};
 
 pub fn basic_mono_dither(image: DynamicImage) -> DynamicImage {
     let mut error = 0;

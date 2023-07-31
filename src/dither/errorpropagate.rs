@@ -1,6 +1,6 @@
 use image::{ImageBuffer, Rgb};
 
-use crate::{utils::numops::map_to_2d, colour::pixel::{MonoPixel, TWO_BIT, RgbPixel}};
+use crate::{utils::numops::map_to_2d, colour::pixel::{mono::{MonoPixel, TWO_BIT}, rgb::RgbPixel}};
 
 pub fn error_propagate_through_pixels<const N: usize>(
     image: &mut ImageBuffer<Rgb<u8>, Vec<u8>>,
@@ -116,7 +116,7 @@ macro_rules! error_prop_mod {
                         error_propagate_through_pixels_rgb
                     },
                 },
-                colour::pixel::{RgbPixel}
+                colour::pixel::rgb::RgbPixel
             };    
 
             $(

@@ -1,6 +1,6 @@
 use image::DynamicImage;
 
-use crate::colour::pixel::RgbPixel;
+use crate::colour::pixel::rgb::RgbPixel;
 
 use super::{
     basic::{basic_mono_dither, basic_colour_dither}, bayer::{bayer_mono_dither, bayer_dither}, errorpropagate::{floydsteinberg::{floyd_steinberg_mono_dither, floyd_steinberg_rgb_dither}, jarvisjudiceninke::{jarvis_judice_ninke_mono_dither, jarvis_judice_ninke_rgb_dither}, stucki::{stucki_mono_dither, stucki_rgb_dither}, atkinson::{atkinson_mono_dither, atkinson_rgb_dither}, burkes::{burkes_mono_dither, burkes_rgb_dither}, sierra::{sierra_mono_dither, two_row_sierra_mono_dither, sierra_lite_mono_dither, sierra_rgb_dither, two_row_sierra_rgb_dither, sierra_lite_rgb_dither}}};

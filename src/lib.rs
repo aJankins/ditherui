@@ -13,14 +13,13 @@ pub mod utils;
 mod test {
     use image::{ImageResult, DynamicImage};
 
-    use crate::{utils::image::load_image, colour::{pixel::RgbPixel, palettes}};
+    use crate::{utils::image::load_image, colour::{pixel::rgb::RgbPixel, palettes}};
 
     use super::dither::algorithms::Algorithms as Dithers;
+    use super::colour::algorithms::Algorithms as ColourProcessing;
 
     #[test]
-    fn algorithms_test() -> ImageResult<()>{
-        println!("Hello, world!");
-    
+    fn dither_test() -> ImageResult<()>{    
         let image = load_image("data/original.png");
     
         let palette: &[RgbPixel] = &[
@@ -37,12 +36,40 @@ mod test {
         //     "551100", "AA5500", "FFAA00", "FFFF00",
         //     "000000",
         // ].map(|tuple| tuple.into());
-    
-        mono(&image)?;
+
+        
+        // mono(&image)?;
         // colour_websafe(&image)?;                              // takes a long time due to large palette
         // colour_eightbit(&image)?;                             // significantly faster
         // colour(&image, palette, Some("-custom-palette"))?;    // custom palettes, uncomment a palette above for examples
     
+        Ok(())
+    }
+
+    #[test]
+    fn colour_processing_test() -> ImageResult<()> {
+        let image = load_image("data/original.png");
+
+        ColourProcessing::RotateHue(180.0)
+            .apply(image.clone())
+            .save("data/rotate-hue-180.png")?;
+
+        ColourProcessing::Brighten(0.2)
+            .apply(image.clone())
+            .save("data/brighten+0.2.png")?;
+
+        ColourProcessing::Brighten(-0.2)
+            .apply(image.clone())
+            .save("data/brighten-0.2.png")?;
+
+        ColourProcessing::Saturate(0.2)
+            .apply(image.clone())
+            .save("data/saturate+0.2.png")?;
+
+        ColourProcessing::Saturate(-0.2)
+            .apply(image.clone())
+            .save("data/saturate-0.2.png")?;
+
         Ok(())
     }
 
