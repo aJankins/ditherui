@@ -1,23 +1,40 @@
-# Dithering Experiment
+# Image Effect Experiment
 
-The name is a placeholder - this project started out as just me wanting to learn more about dithering. After looking into algorithms and other code I've seen online, this is what I've got!
+The name is a placeholder - this project started out as just me wanting to learn more about dithering and more image effects. After looking into algorithms and other code I've seen online, this is what I've got!
 
 Might become a library, or a tool. I'd like to provide a good GUI for it at least.
 
+## Dithering
+
 Currently supports the following algorithms:
 
-|            **Name** |                                  *2-bit* |                             *RGB (Web-safe)* |                             *RGB (8-bit)* |                             *RGB (Custom palette)* |
-| ------------------: | ---------------------------------------: | -------------------------------------------: | ----------------------------------------: | -------------------------------------------------: |
-|               Basic |               ![](./data/basic-mono.png) |               ![](./data/basic-web-safe.png) |               ![](./data/basic-8-bit.png) |               ![](./data/basic-custom-palette.png) |
-|     Floyd-Steinberg |     ![](./data/floyd-steinberg-mono.png) |     ![](./data/floyd-steinberg-web-safe.png) |     ![](./data/floyd-steinberg-8-bit.png) |     ![](./data/floyd-steinberg-custom-palette.png) |
-| Jarvis-Judice-Ninke | ![](./data/jarvis-judice-ninke-mono.png) | ![](./data/jarvis-judice-ninke-web-safe.png) | ![](./data/jarvis-judice-ninke-8-bit.png) | ![](./data/jarvis-judice-ninke-custom-palette.png) |
-|              Stucki |              ![](./data/stucki-mono.png) |              ![](./data/stucki-web-safe.png) |              ![](./data/stucki-8-bit.png) |              ![](./data/stucki-custom-palette.png) |
-|            Atkinson |            ![](./data/atkinson-mono.png) |            ![](./data/atkinson-web-safe.png) |            ![](./data/atkinson-8-bit.png) |            ![](./data/atkinson-custom-palette.png) |
-|              Burkes |              ![](./data/burkes-mono.png) |              ![](./data/burkes-web-safe.png) |              ![](./data/burkes-8-bit.png) |              ![](./data/burkes-custom-palette.png) |
-|              Sierra |              ![](./data/sierra-mono.png) |              ![](./data/sierra-web-safe.png) |              ![](./data/sierra-8-bit.png) |              ![](./data/sierra-custom-palette.png) |
-|        SierraTwoRow |      ![](./data/sierra-two-row-mono.png) |      ![](./data/sierra-two-row-web-safe.png) |      ![](./data/sierra-two-row-8-bit.png) |      ![](./data/sierra-two-row-custom-palette.png) |
-|          SierraLite |         ![](./data/sierra-lite-mono.png) |         ![](./data/sierra-lite-web-safe.png) |         ![](./data/sierra-lite-8-bit.png) |         ![](./data/sierra-lite-custom-palette.png) |
-|           Bayer 2x2 |           ![](./data/bayer-2x2-mono.png) |           ![](./data/bayer-2x2-web-safe.png) |           ![](./data/bayer-2x2-8-bit.png) |           ![](./data/bayer-2x2-custom-palette.png) |
-|           Bayer 4x4 |           ![](./data/bayer-4x4-mono.png) |           ![](./data/bayer-4x4-web-safe.png) |           ![](./data/bayer-4x4-8-bit.png) |           ![](./data/bayer-4x4-custom-palette.png) |
-|           Bayer 8x8 |           ![](./data/bayer-8x8-mono.png) |           ![](./data/bayer-8x8-web-safe.png) |           ![](./data/bayer-8x8-8-bit.png) |           ![](./data/bayer-8x8-custom-palette.png) |
-|         Bayer 16x16 |         ![](./data/bayer-16x16-mono.png) |         ![](./data/bayer-16x16-web-safe.png) |         ![](./data/bayer-16x16-8-bit.png) |         ![](./data/bayer-16x16-custom-palette.png) |
+|            **Name** | *2-bit*                                         | *RGB (Web-safe)*                                    | *RGB (8-bit)*                                    | *RGB (Custom palette)*                                    |
+| ------------------: | :---------------------------------------------- | :-------------------------------------------------- | :----------------------------------------------- | :-------------------------------------------------------- |
+|               Basic | ![](./data/dither/basic-mono.png)               | ![](./data/dither/basic-web-safe.png)               | ![](./data/dither/basic-8-bit.png)               | ![](./data/dither/basic-custom-palette.png)               |
+|     Floyd-Steinberg | ![](./data/dither/floyd-steinberg-mono.png)     | ![](./data/dither/floyd-steinberg-web-safe.png)     | ![](./data/dither/floyd-steinberg-8-bit.png)     | ![](./data/dither/floyd-steinberg-custom-palette.png)     |
+| Jarvis-Judice-Ninke | ![](./data/dither/jarvis-judice-ninke-mono.png) | ![](./data/dither/jarvis-judice-ninke-web-safe.png) | ![](./data/dither/jarvis-judice-ninke-8-bit.png) | ![](./data/dither/jarvis-judice-ninke-custom-palette.png) |
+|              Stucki | ![](./data/dither/stucki-mono.png)              | ![](./data/dither/stucki-web-safe.png)              | ![](./data/dither/stucki-8-bit.png)              | ![](./data/dither/stucki-custom-palette.png)              |
+|            Atkinson | ![](./data/dither/atkinson-mono.png)            | ![](./data/dither/atkinson-web-safe.png)            | ![](./data/dither/atkinson-8-bit.png)            | ![](./data/dither/atkinson-custom-palette.png)            |
+|              Burkes | ![](./data/dither/burkes-mono.png)              | ![](./data/dither/burkes-web-safe.png)              | ![](./data/dither/burkes-8-bit.png)              | ![](./data/dither/burkes-custom-palette.png)              |
+|              Sierra | ![](./data/dither/sierra-mono.png)              | ![](./data/dither/sierra-web-safe.png)              | ![](./data/dither/sierra-8-bit.png)              | ![](./data/dither/sierra-custom-palette.png)              |
+|        SierraTwoRow | ![](./data/dither/sierra-two-row-mono.png)      | ![](./data/dither/sierra-two-row-web-safe.png)      | ![](./data/dither/sierra-two-row-8-bit.png)      | ![](./data/dither/sierra-two-row-custom-palette.png)      |
+|          SierraLite | ![](./data/dither/sierra-lite-mono.png)         | ![](./data/dither/sierra-lite-web-safe.png)         | ![](./data/dither/sierra-lite-8-bit.png)         | ![](./data/dither/sierra-lite-custom-palette.png)         |
+|           Bayer 2x2 | ![](./data/dither/bayer-2x2-mono.png)           | ![](./data/dither/bayer-2x2-web-safe.png)           | ![](./data/dither/bayer-2x2-8-bit.png)           | ![](./data/dither/bayer-2x2-custom-palette.png)           |
+|           Bayer 4x4 | ![](./data/dither/bayer-4x4-mono.png)           | ![](./data/dither/bayer-4x4-web-safe.png)           | ![](./data/dither/bayer-4x4-8-bit.png)           | ![](./data/dither/bayer-4x4-custom-palette.png)           |
+|           Bayer 8x8 | ![](./data/dither/bayer-8x8-mono.png)           | ![](./data/dither/bayer-8x8-web-safe.png)           | ![](./data/dither/bayer-8x8-8-bit.png)           | ![](./data/dither/bayer-8x8-custom-palette.png)           |
+|         Bayer 16x16 | ![](./data/dither/bayer-16x16-mono.png)         | ![](./data/dither/bayer-16x16-web-safe.png)         | ![](./data/dither/bayer-16x16-8-bit.png)         | ![](./data/dither/bayer-16x16-custom-palette.png)         |
+
+## Colour
+
+Currently supports the following effects:
+
+|         **Name** | *Image*                             |
+| ---------------: | ----------------------------------- |
+|    brighten +0.2 | ![](./data/colour/brighten+0.2.png) |
+|    brighten -0.2 | ![](./data/colour/brighten-0.2.png) |
+|     contrast 0.5 | ![](./data/colour/contrast.0.5.png) |
+|     contrast 1.5 | ![](./data/colour/contrast.1.5.png) |
+| gradient mapping | ![](./data/colour/gradient-mapped.png) |
+|   rotate hue 180 | ![](./data/colour/rotate-hue-180.png) |
+|    saturate +0.2 | ![](./data/colour/saturate+0.2.png) |
+|    saturate -0.2 | ![](./data/colour/saturate-0.2.png) |

@@ -76,7 +76,7 @@ mod test {
         image.clone().apply(Colours::Saturate( 0.2)).save("data/colour/saturate+0.2.png")?;
         image.clone().apply(Colours::Saturate(-0.2)).save("data/colour/saturate-0.2.png")?;
         image.clone().apply(Colours::Contrast( 0.5)).save("data/colour/contrast.0.5.png")?;
-        image.clone().apply(Colours::Contrast( 1.5)).save("data/colour/contrast.0.2.png")?;
+        image.clone().apply(Colours::Contrast( 1.5)).save("data/colour/contrast.1.5.png")?;
 
         let gradient_map = [
             ("000000".into(), 0.00),
