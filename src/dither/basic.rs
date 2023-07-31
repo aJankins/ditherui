@@ -1,13 +1,13 @@
-use image::{DynamicImage};
+use image::DynamicImage;
 
-use super::pixel::{MonoPixel, TWO_BIT, RgbPixel};
+use crate::colour::pixel::{MonoPixel, TWO_BIT, RgbPixel};
 
 pub fn basic_mono_dither(image: DynamicImage) -> DynamicImage {
     let mut error = 0;
     let mut rgb8_image = image.into_rgb8();
 
     for pixel in rgb8_image.pixels_mut() {
-        let mono = MonoPixel::mono_from(pixel).add_error(error);
+        let mono = MonoPixel::from(&*pixel).add_error(error);
         let quantized = mono.quantize(TWO_BIT);
 
         error = mono.get_error(&quantized);
@@ -27,7 +27,7 @@ pub fn basic_colour_dither(image: DynamicImage, palette: &[RgbPixel]) -> Dynamic
     let mut rgb8_image = image.into_rgb8();
 
     for pixel in rgb8_image.pixels_mut() {
-        let rgb = RgbPixel::rgb_from(pixel).add_error((
+        let rgb = RgbPixel::from(&*pixel).add_error((
             error.0,
             error.1,
             error.2,

@@ -6,9 +6,6 @@ pub mod dither;
 /// colour
 pub mod colour;
 
-/// image
-pub mod image;
-
 /// utils
 pub mod utils;
 
@@ -16,12 +13,9 @@ pub mod utils;
 mod test {
     use image::{ImageResult, DynamicImage};
 
-    use crate::{image::load_image, dither::pixel::RgbPixel};
+    use crate::{utils::image::load_image, colour::{pixel::RgbPixel, palettes}};
 
-    use super::dither::{
-        algorithms::Algorithms as Dithers,
-        palettes
-    };
+    use super::dither::algorithms::Algorithms as Dithers;
 
     #[test]
     fn algorithms_test() -> ImageResult<()>{
@@ -44,10 +38,10 @@ mod test {
         //     "000000",
         // ].map(|tuple| tuple.into());
     
-        // mono(&image)?;
+        mono(&image)?;
         // colour_websafe(&image)?;                              // takes a long time due to large palette
         // colour_eightbit(&image)?;                             // significantly faster
-        colour(&image, palette, Some("-custom-palette"))?;    // custom palettes, uncomment a palette above for examples
+        // colour(&image, palette, Some("-custom-palette"))?;    // custom palettes, uncomment a palette above for examples
     
         Ok(())
     }

@@ -1,8 +1,6 @@
 use image::{ImageBuffer, Rgb};
 
-use crate::utils::numops::map_to_2d;
-
-use super::pixel::{MonoPixel, TWO_BIT, RgbPixel};
+use crate::{utils::numops::map_to_2d, colour::pixel::{MonoPixel, TWO_BIT, RgbPixel}};
 
 pub fn error_propagate_through_pixels<const N: usize>(
     image: &mut ImageBuffer<Rgb<u8>, Vec<u8>>,
@@ -15,7 +13,7 @@ pub fn error_propagate_through_pixels<const N: usize>(
         let (x, y) = map_to_2d(i, xdim);
         let error = {
             let pixel = image.get_pixel_mut(x, y);
-            let mono = MonoPixel::mono_from(pixel);
+            let mono = MonoPixel::from(&*pixel);
             let quantized = mono.quantize(TWO_BIT);
             pixel[0] = quantized.get();
             pixel[1] = quantized.get();
@@ -57,7 +55,7 @@ pub fn error_propagate_through_pixels_rgb<const N: usize>(
         let (x, y) = map_to_2d(i, xdim);
         let error = {
             let pixel = image.get_pixel_mut(x, y);
-            let rgb = RgbPixel::rgb_from(pixel);
+            let rgb = RgbPixel::from(&*pixel);
             let quantized = rgb.quantize(palette);
             (pixel[0], pixel[1], pixel[2]) = quantized.get();
             rgb.get_error(&quantized)
@@ -117,8 +115,8 @@ macro_rules! error_prop_mod {
                         error_propagate_through_pixels,
                         error_propagate_through_pixels_rgb
                     },
-                    pixel::{RgbPixel},
-                }
+                },
+                colour::pixel::{RgbPixel}
             };    
 
             $(

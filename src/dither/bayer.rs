@@ -1,9 +1,7 @@
 use image::{DynamicImage, Pixel};
 use ndarray::{Array, Dim, concatenate, Axis};
 
-use crate::utils::numops::average;
-
-use super::pixel::RgbPixel;
+use crate::{utils::numops::average, colour::pixel::RgbPixel};
 
 fn dither_matrix(n: usize) -> Array<f64, Dim<[usize; 2]>> {
     if n == 1 { return Array::<f64, _>::zeros((1, 1)) }
@@ -56,7 +54,7 @@ pub fn bayer_dither(image: DynamicImage, dither_size: usize, palette: &[RgbPixel
         let xs = x as usize;
         let ys = y as usize;
 
-        let rgb = RgbPixel::rgb_from(pixel);
+        let rgb = RgbPixel::from(&*pixel);
 
         let offset = ((255.0 / 3.0) * (matrix.get((xs % dither_size, ys % dither_size)).unwrap_or(&0.0) - 0.5)) as i32;
 

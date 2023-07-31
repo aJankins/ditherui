@@ -1,9 +1,6 @@
 use image::DynamicImage;
 
-use crate::dither::pixel::RgbPixel;
-
-
-
+use super::pixel::RgbPixel;
 pub enum Algorithms<'a> {
     Hue(u16),
     Contrast(u16),

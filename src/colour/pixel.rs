@@ -16,6 +16,16 @@ impl From<u8> for MonoPixel {
     }
 }
 
+impl From<&Rgb<u8>> for MonoPixel {
+    fn from(value: &Rgb<u8>) -> Self {
+        let [r, g, b] = value.0;
+        let luminance = (r.max(g).max(b) as u16 + r.min(g).min(b) as u16) / 2;
+        MonoPixel(
+            luminance as u8
+        )
+    }
+}
+
 impl From<(u8, u8, u8)> for RgbPixel {
     fn from(value: (u8, u8, u8)) -> Self {
         RgbPixel(value.0, value.1, value.2)
@@ -37,13 +47,14 @@ impl From<&str> for RgbPixel {
     }
 }
 
-impl MonoPixel {
-    pub fn mono_from(pixel: &Rgb<u8>) -> MonoPixel {
-        MonoPixel(
-            average(pixel.channels()) as u8
-        )
+impl From<&Rgb<u8>> for RgbPixel {
+    fn from(value: &Rgb<u8>) -> Self {
+        let [r, g, b] = value.0;
+        RgbPixel(r, g, b)
     }
+}
 
+impl MonoPixel {
     pub fn add_error(self, error: i32) -> MonoPixel {
         MonoPixel((self.0 as i32 + error).min(255).max(0) as u8)
     }
@@ -75,15 +86,6 @@ impl MonoPixel {
 }
 
 impl RgbPixel {
-    pub fn rgb_from(pixel: &Rgb<u8>) -> RgbPixel {
-        let channels = pixel.channels();
-        RgbPixel(
-            channels[0],
-            channels[1],
-            channels[2]
-        )
-    }
-
     pub fn add_error(self, error: (i32, i32, i32)) -> RgbPixel {
         RgbPixel(
             ((self.0 as i32) + error.0).min(255).max(0) as u8,
