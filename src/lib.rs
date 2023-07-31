@@ -31,7 +31,7 @@ mod test {
 
     use crate::{
         utils::image::load_image,
-        colour::{pixel::rgb::RgbPixel, palettes},
+        colour::{pixel::{rgb::RgbPixel, hsl::HslPixel}, palettes},
         AdjustableImage
     };
 
@@ -39,7 +39,39 @@ mod test {
     use super::colour::algorithms::Algorithms as Colours;
 
     #[test]
-    fn dither_test() -> ImageResult<()>{    
+    fn _exec_test() -> ImageResult<()> {
+        let image = load_image("data/input.png");
+
+        let gradient = [
+            (HslPixel::from((   0.0, 0.0, 0.0 )).to_rgb(), 0.00),
+            (HslPixel::from(( 325.0, 0.5, 0.4 )).to_rgb(), 0.40),
+            (HslPixel::from(( 300.0, 0.5, 0.5 )).to_rgb(), 0.50),
+            (HslPixel::from(( 250.0, 0.5, 0.6 )).to_rgb(), 0.60),
+            (HslPixel::from(( 200.0, 0.5, 0.7 )).to_rgb(), 0.70),
+            (HslPixel::from(( 400.0, 0.5, 0.8 )).to_rgb(), 0.80),
+            (HslPixel::from((   0.0, 0.0, 1.0 )).to_rgb(), 1.00),
+        ];
+
+        let palette = [
+            "FFFFFF",
+            "003355", "0088AA", "00FFDD",
+            "660055", "BB00AA", "FF00EE",
+            "FFEE44",
+            "000000",
+        ].map(|hex| hex.into());
+
+        image
+            // .apply(Colours::GradientMap(&gradient))
+            .apply(Colours::Brighten(0.1))
+            .apply(Colours::Contrast(1.3))
+            .apply(Dithers::Bayer(8, &palette))
+            .save("data/output.png")?;
+
+        Ok(())
+    }
+
+    // #[test]
+    fn dither_test() -> ImageResult<()> {    
         let image = load_image("data/input.png");
     
         let palette: &[RgbPixel] = &[
@@ -66,8 +98,8 @@ mod test {
         Ok(())
     }
 
-    #[test]
-    fn colour_processing_test() -> ImageResult<()> {
+    // #[test]
+    fn colour_effects_test() -> ImageResult<()> {
         let image = load_image("data/original.png");
 
         image.clone().apply(Colours::RotateHue(180.0)).save("data/colour/rotate-hue-180.png")?;
