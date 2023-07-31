@@ -96,4 +96,8 @@ impl HslPixel {
             else { break (self.0 % 360.0) + 360.0 }
         }
     }
+
+    pub fn get(&self) -> (f32, f32, f32) {
+        (self.0, self.1, self.2)
+    }
 }

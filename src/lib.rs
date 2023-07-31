@@ -70,6 +70,23 @@ mod test {
             .apply(image.clone())
             .save("data/saturate-0.2.png")?;
 
+        ColourProcessing::Contrast(0.5)
+            .apply(image.clone())
+            .save("data/contrast.0.5.png")?;
+
+        ColourProcessing::Contrast(1.5)
+            .apply(image.clone())
+            .save("data/contrast.1.5.png")?;
+
+        ColourProcessing::GradientMap(&[
+            ("000000".into(), 0.00),
+            ("0000FF".into(), 0.25),
+            ("FF0000".into(), 0.50),
+            ("00FF00".into(), 0.75),
+            ("FFFFFF".into(), 1.00),
+        ]).apply(image.clone())
+            .save("data/gradient-mapped.png")?;
+
         Ok(())
     }
 

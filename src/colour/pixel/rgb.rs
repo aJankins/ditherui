@@ -4,7 +4,7 @@ use crate::utils::numops::average;
 
 use super::hsl::HslPixel;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RgbPixel(u8, u8, u8);
 
 impl From<(u8, u8, u8)> for RgbPixel {
