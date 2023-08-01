@@ -1,13 +1,12 @@
-use image::ImageResult;
 use image_filters::{
-    utils::image::load_image, 
-    colour::{pixel::hsl::HslPixel, palettes}, 
+    utils::{image::load_image, ImageFilterResult}, 
+    colour::{pixel::hsl::HslPixel}, 
     prelude::*
 };
 
 // this file is essentially for testing / running the code, more than providing an actual reusable binary
 
-fn main() -> ImageResult<()> {
+fn main() -> ImageFilterResult<()> {
     let gradient = [
         (HslPixel::from((   0.0, 0.0, 0.0 )).to_rgb(), 0.00),
         (HslPixel::from(( 325.0, 0.5, 0.4 )).to_rgb(), 0.40),
@@ -18,20 +17,20 @@ fn main() -> ImageResult<()> {
         (HslPixel::from((   0.0, 0.0, 1.0 )).to_rgb(), 1.00),
     ];
 
-    // let palette = [
-    //     "FFFFFF",
-    //     "003355", "0088AA", "00FFDD",
-    //     "660055", "BB00AA", "FF00EE",
-    //     "FFEE44",
-    //     "000000",
-    // ].map(|hex| hex.into());
+    let palette = [
+        "FFFFFF",
+        "003355", "0088AA", "00FFDD",
+        "660055", "BB00AA", "FF00EE",
+        "FFEE44",
+        "000000",
+    ].map(|hex| hex.into());
 
-    load_image("data/input.png").unwrap()
+    load_image("data/input.png")?
         // .apply(Colours::GradientMap(&gradient))
         // .apply(Colour::Brighten(0.1))
         // .apply(Colour::Contrast(1.3))
         // .apply(Dither::Bayer(8, &palette))
-        .apply(Dither::Bayer(2, &palettes::WEB_SAFE))
+        .apply(Dither::Bayer(2, &palette))
         .save("data/output.png")?;
 
     Ok(())

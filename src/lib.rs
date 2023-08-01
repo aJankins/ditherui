@@ -37,7 +37,7 @@ mod test {
     use image::{ImageResult, DynamicImage};
 
     use crate::{
-        utils::image::load_image,
+        utils::{image::load_image, ImageFilterResult},
         colour::{pixel::rgb::RgbPixel, palettes},
         prelude::*
     };
@@ -46,8 +46,8 @@ mod test {
     use super::colour::algorithms::Algorithms as Colours;
 
     #[test]
-    fn dither_test() -> ImageResult<()> {    
-        let image = load_image("data/input.png").unwrap();
+    fn dither_test() -> ImageFilterResult<()> {    
+        let image = load_image("data/input.png")?;
     
         let palette: &[RgbPixel] = &[
             "FFFFFF",
@@ -66,8 +66,8 @@ mod test {
     }
 
     #[test]
-    fn colour_effects_test() -> ImageResult<()> {
-        let image = load_image("data/original.png").unwrap();
+    fn colour_effects_test() -> ImageFilterResult<()> {
+        let image = load_image("data/original.png")?;
 
         image.clone().apply(Colours::RotateHue(180.0)).save("data/colour/rotate-hue-180.png")?;
         image.clone().apply(Colours::Brighten( 0.2)).save("data/colour/brighten+0.2.png")?;
