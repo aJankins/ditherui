@@ -1,6 +1,6 @@
 use image::DynamicImage;
 
-use crate::colour::pixel::{mono::{MonoPixel, TWO_BIT}, rgb::RgbPixel};
+use crate::pixel::{mono::{MonoPixel, ONE_BIT}, rgb::RgbPixel};
 
 pub fn basic_mono_dither(image: DynamicImage) -> DynamicImage {
     let mut error = 0;
@@ -8,7 +8,7 @@ pub fn basic_mono_dither(image: DynamicImage) -> DynamicImage {
 
     for pixel in rgb8_image.pixels_mut() {
         let mono = MonoPixel::from(&*pixel).add_error(error);
-        let quantized = mono.quantize(TWO_BIT);
+        let quantized = mono.quantize(ONE_BIT);
 
         error = mono.get_error(&quantized);
 

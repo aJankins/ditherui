@@ -1,6 +1,6 @@
 use image_filters::{
     utils::{image::load_image, ImageFilterResult}, 
-    colour::{pixel::hsl::HslPixel}, 
+    pixel::hsl::HslPixel, 
     prelude::*
 };
 

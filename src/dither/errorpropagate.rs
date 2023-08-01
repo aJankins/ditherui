@@ -1,6 +1,6 @@
 use image::{ImageBuffer, Rgb};
 
-use crate::{utils::numops::map_to_2d, colour::pixel::{mono::{MonoPixel, TWO_BIT}, rgb::RgbPixel}};
+use crate::{utils::numops::map_to_2d, pixel::{mono::{MonoPixel, ONE_BIT}, rgb::RgbPixel}};
 
 pub fn error_propagate_through_pixels<const N: usize>(
     image: &mut ImageBuffer<Rgb<u8>, Vec<u8>>,
@@ -14,7 +14,7 @@ pub fn error_propagate_through_pixels<const N: usize>(
         let error = {
             let pixel = image.get_pixel_mut(x, y);
             let mono = MonoPixel::from(&*pixel);
-            let quantized = mono.quantize(TWO_BIT);
+            let quantized = mono.quantize(ONE_BIT);
             pixel[0] = quantized.get();
             pixel[1] = quantized.get();
             pixel[2] = quantized.get();
@@ -83,7 +83,6 @@ pub fn error_propagate_through_pixels_rgb<const N: usize>(
     }
 }
 
-#[macro_export]
 macro_rules! error_prop_fn {
     ($fn_name:ident, $matrix:expr, $portion_amnt:expr) => {
         pub fn $fn_name(image: DynamicImage) -> DynamicImage {
@@ -109,14 +108,13 @@ macro_rules! error_prop_mod {
         pub mod $mod_name {
             use image::DynamicImage;
             use crate::{
-                error_prop_fn,
                 dither::{
                     errorpropagate::{
                         error_propagate_through_pixels,
                         error_propagate_through_pixels_rgb
                     },
                 },
-                colour::pixel::rgb::RgbPixel
+                pixel::rgb::RgbPixel
             };    
 
             $(

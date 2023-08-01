@@ -1,13 +1,35 @@
 use image::DynamicImage;
 
-use crate::ImageEffect;
+use crate::{ImageEffect, pixel::rgb::RgbPixel};
 
-use super::pixel::rgb::RgbPixel;
+/// Algorithms for applying filters to an image.
 pub enum Algorithms<'a> {
+    /// Rotates the hue based on the amount of degrees passed.
     RotateHue(f32),
+    /// Modifies the contrast of the image.
+    /// 
+    /// `1.0` means no change. Above adds contrast, below decreases it.
     Contrast(f32),
+    /// Modifies the brightness of the image.
+    /// 
+    /// This will directly affect the luminance of each pixel - which ranges between 0.0 and 1.0.
+    /// Therefore `1.0` will turn the image white, and `-1.0` will turn the image black.
     Brighten(f32),
+    /// Modifies the saturation of the image.
+    /// 
+    /// This will directly affect the saturation of each pixel - which ranges between 0.0 and 1.0.
+    /// Therefore `1.0` will maximally saturate each pixel, and `-1.0` will turn the image grayscale.
     Saturate(f32),
+    /// Applies a gradient map to the image.
+    /// 
+    /// The gradient map is defined as a slice of tuples containing the *colour* and its threshold.
+    /// Each pixel in the image will be mapped to the gradient using its luminance value.
+    /// 
+    /// The threshold must be between `0.0` and `1.0` - you can technically use other values but the results
+    /// may be a bit weird.
+    /// 
+    /// As an example, to turn an image grayscale you could pass the colour black at `0.0` and the colour
+    /// white at `1.0`.
     GradientMap(&'a [(RgbPixel, f32)]),
 }
 

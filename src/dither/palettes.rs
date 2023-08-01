@@ -1,6 +1,6 @@
 use once_cell::sync::Lazy;
 
-use super::pixel::rgb::RgbPixel;
+use crate::pixel::rgb::RgbPixel;
 
 pub static EIGHT_BIT: Lazy<Vec<RgbPixel>> = Lazy::new(|| {
     vec![

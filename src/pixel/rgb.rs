@@ -5,6 +5,7 @@ use crate::utils::numops::average;
 use super::hsl::HslPixel;
 
 #[derive(Debug, Clone)]
+/// Represents a pixel in the RGB colour space. Each value (RGB) ranges between 0 and 255.
 pub struct RgbPixel(u8, u8, u8);
 
 impl From<(u8, u8, u8)> for RgbPixel {
@@ -36,6 +37,7 @@ impl From<&Rgb<u8>> for RgbPixel {
 }
 
 impl RgbPixel {
+    /// Adds an error to each of the channels.
     pub fn add_error(self, error: (i32, i32, i32)) -> RgbPixel {
         RgbPixel(
             ((self.0 as i32) + error.0).min(255).max(0) as u8,
@@ -44,6 +46,7 @@ impl RgbPixel {
         )
     }
 
+    /// Quantizes the RGB pixel to the nearest colour in the palette.
     pub fn quantize(&self, palette: &[RgbPixel]) -> RgbPixel {
         let mut closest_distance = f64::MAX;
         let mut current_colour = self;
@@ -59,6 +62,7 @@ impl RgbPixel {
         current_colour.get().into()
     }
 
+    /// Gets the error in channel values between itself and another `RgbPixel`.
     pub fn get_error(&self, other: &RgbPixel) -> (i32, i32, i32) {
         (
             self.0 as i32 - other.0 as i32,
@@ -67,6 +71,8 @@ impl RgbPixel {
         )
     }
 
+    /// Retrieves the difference between it and another `RgbPixel` using the
+    /// weighted euclidean method.
     pub fn get_difference(&self, other: &RgbPixel) -> f64 {
         self._weighed_euclidean_diff(other)
 
@@ -113,10 +119,12 @@ impl RgbPixel {
         r_sc + g_sc + b_sc
     }
 
+    /// Retrieves the (r, g, b) channels of the pixel.
     pub fn get(&self) -> (u8, u8, u8) {
         (self.0, self.1, self.2)
     }
 
+    /// Converts the pixel to an `HslPixel`.
     pub fn to_hsl(self) -> HslPixel {
         self.into()
     }

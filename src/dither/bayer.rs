@@ -1,7 +1,7 @@
 use image::{DynamicImage, Pixel};
 use ndarray::{Array, Dim, concatenate, Axis};
 
-use crate::{utils::numops::average, colour::pixel::rgb::RgbPixel};
+use crate::{utils::numops::average, pixel::rgb::RgbPixel};
 
 fn dither_matrix(n: usize) -> Array<f64, Dim<[usize; 2]>> {
     if n == 1 { return Array::<f64, _>::zeros((1, 1)) }

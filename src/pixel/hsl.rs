@@ -1,6 +1,7 @@
 use super::rgb::RgbPixel;
 
 #[derive(Debug)]
+/// Represents a pixel in the HSL colour space. Saturation and luminance are clamped at `0.0` to `1.0` - whereas hue can be any valid `f32` value.
 pub struct HslPixel(f32, f32, f32);
 
 impl From<(f32, f32, f32)> for HslPixel {
@@ -43,6 +44,7 @@ impl From<RgbPixel> for HslPixel {
 }
 
 impl HslPixel {
+    /// Converts an HslPixel into an RgbPixel.
     pub fn to_rgb(self) -> RgbPixel {
         let chroma = (1.0 - (2.0*self.2 - 1.0).abs()) * self.1;
         let hue_degree = self.get_normalized_hue() / 60.0;
@@ -75,21 +77,25 @@ impl HslPixel {
         ).into()
     }
 
+    /// Adds (rotates) the hue.
     pub fn add_hue(&mut self, hue: f32) -> &mut Self {
         self.0 = self.0 + hue;
         self
     }
 
+    /// Adds saturation. Any value can be passed, but the value on the pixel is clamped to `0.0` to `1.0`.
     pub fn add_saturation(&mut self, saturation: f32) -> &mut Self {
         self.1 = (self.1 + saturation).clamp(0.0, 1.0);
         self
     }
 
+    /// Adds luminance. Any value can be passed, but the value on the pixel is clamped to `0.0` to `1.0`.
     pub fn add_luminance(&mut self, luminance: f32) -> &mut Self {
         self.2 = (self.2 + luminance).clamp(0.0, 1.0);
         self
     }
 
+    /// Retrieves the hue as a value between 0 and 360.
     fn get_normalized_hue(&self) -> f32 {
         loop {
             if self.0 >= 0.0 { break self.0 % 360.0 }
@@ -97,6 +103,7 @@ impl HslPixel {
         }
     }
 
+    /// Retrieves the (h, s, l) values.
     pub fn get(&self) -> (f32, f32, f32) {
         (self.0, self.1, self.2)
     }
