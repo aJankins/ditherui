@@ -47,7 +47,7 @@ mod test {
 
     #[test]
     fn dither_test() -> ImageResult<()> {    
-        let image = load_image("data/input.png");
+        let image = load_image("data/input.png").unwrap();
     
         let palette: &[RgbPixel] = &[
             "FFFFFF",
@@ -67,7 +67,7 @@ mod test {
 
     #[test]
     fn colour_effects_test() -> ImageResult<()> {
-        let image = load_image("data/original.png");
+        let image = load_image("data/original.png").unwrap();
 
         image.clone().apply(Colours::RotateHue(180.0)).save("data/colour/rotate-hue-180.png")?;
         image.clone().apply(Colours::Brighten( 0.2)).save("data/colour/brighten+0.2.png")?;

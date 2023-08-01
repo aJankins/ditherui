@@ -8,8 +8,6 @@ use image_filters::{
 // this file is essentially for testing / running the code, more than providing an actual reusable binary
 
 fn main() -> ImageResult<()> {
-    let image = load_image("data/input.png");
-
     let gradient = [
         (HslPixel::from((   0.0, 0.0, 0.0 )).to_rgb(), 0.00),
         (HslPixel::from(( 325.0, 0.5, 0.4 )).to_rgb(), 0.40),
@@ -28,7 +26,7 @@ fn main() -> ImageResult<()> {
     //     "000000",
     // ].map(|hex| hex.into());
 
-    image
+    load_image("data/input.png").unwrap()
         // .apply(Colours::GradientMap(&gradient))
         // .apply(Colour::Brighten(0.1))
         // .apply(Colour::Contrast(1.3))
