@@ -2,7 +2,9 @@
 
 The name is a placeholder - this project started out as just me wanting to learn more about dithering and more image effects. After looking into algorithms and other code I've seen online, this is what I've got!
 
-Might become a library, or a tool. I'd like to provide a good GUI for it at least.
+**Note:** You can technically use this as a library - but it's definitely not currently stable so you may experience major breakages. The `src/main.rs` and `src/lib.rs` should contain examples in this case. I *suggest* not using it for anything other than side projects. It might get published, but currently I don't think it's at *that* level of quality yet.
+
+Feel free to open issues / pull requests / fork if you'd like.
 
 ## Dithering
 

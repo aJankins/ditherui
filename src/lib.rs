@@ -11,6 +11,13 @@ pub mod colour;
 /// utils
 pub mod utils;
 
+pub mod prelude {
+    pub use crate::dither::algorithms::Algorithms as Dither;
+    pub use crate::colour::algorithms::Algorithms as Colour;
+    pub use crate::AdjustableImage;
+    pub use crate::ImageEffect;
+}
+
 pub trait ImageEffect<T: ?Sized> {
     fn apply(&self, image: T) -> T;
 }
@@ -31,46 +38,14 @@ mod test {
 
     use crate::{
         utils::image::load_image,
-        colour::{pixel::{rgb::RgbPixel, hsl::HslPixel}, palettes},
-        AdjustableImage
+        colour::{pixel::rgb::RgbPixel, palettes},
+        prelude::*
     };
 
     use super::dither::algorithms::Algorithms as Dithers;
     use super::colour::algorithms::Algorithms as Colours;
 
     #[test]
-    fn _exec_test() -> ImageResult<()> {
-        let image = load_image("data/input.png");
-
-        let gradient = [
-            (HslPixel::from((   0.0, 0.0, 0.0 )).to_rgb(), 0.00),
-            (HslPixel::from(( 325.0, 0.5, 0.4 )).to_rgb(), 0.40),
-            (HslPixel::from(( 300.0, 0.5, 0.5 )).to_rgb(), 0.50),
-            (HslPixel::from(( 250.0, 0.5, 0.6 )).to_rgb(), 0.60),
-            (HslPixel::from(( 200.0, 0.5, 0.7 )).to_rgb(), 0.70),
-            (HslPixel::from(( 400.0, 0.5, 0.8 )).to_rgb(), 0.80),
-            (HslPixel::from((   0.0, 0.0, 1.0 )).to_rgb(), 1.00),
-        ];
-
-        let palette = [
-            "FFFFFF",
-            "003355", "0088AA", "00FFDD",
-            "660055", "BB00AA", "FF00EE",
-            "FFEE44",
-            "000000",
-        ].map(|hex| hex.into());
-
-        image
-            // .apply(Colours::GradientMap(&gradient))
-            .apply(Colours::Brighten(0.1))
-            .apply(Colours::Contrast(1.3))
-            .apply(Dithers::Bayer(8, &palette))
-            .save("data/output.png")?;
-
-        Ok(())
-    }
-
-    // #[test]
     fn dither_test() -> ImageResult<()> {    
         let image = load_image("data/input.png");
     
@@ -78,17 +53,9 @@ mod test {
             "FFFFFF",
             "003355", "0088AA", "00FFDD",
             "660055", "BB00AA", "FF00EE",
-            // "FFEE44",
+            "FFEE44",
             "000000",
         ].map(|tuple| tuple.into());
-    
-        // let palette: &[RgbPixel] = &[
-        //     "FFFFFF",
-        //     "440055", "9900AA", "EE00FF", "FF00FF",
-        //     "551100", "AA5500", "FFAA00", "FFFF00",
-        //     "000000",
-        // ].map(|tuple| tuple.into());
-
         
         mono(&image)?;
         colour_websafe(&image)?;                              // takes a long time due to large palette
@@ -98,7 +65,7 @@ mod test {
         Ok(())
     }
 
-    // #[test]
+    #[test]
     fn colour_effects_test() -> ImageResult<()> {
         let image = load_image("data/original.png");
 
