@@ -27,7 +27,7 @@ pub mod colours {
 
     // other common colours
     pub static MAGENTA: RgbPixel = RgbPixel(255, 40, 200);
-    pub static PINK: RgbPixel = RgbPixel(255, 155, 155);
+    pub static PINK: RgbPixel = RgbPixel(255, 150, 200);
     pub static ROSE: RgbPixel = RgbPixel(255, 0, 150);
     pub static GOLD: RgbPixel = RgbPixel(255, 200, 40);
 }
@@ -61,20 +61,8 @@ impl From<&Rgb<u8>> for RgbPixel {
 }
 
 impl RgbPixel {
-    pub fn with(r: u8, g: u8, b: u8) -> Self {
+    pub fn new(r: u8, g: u8, b: u8) -> Self {
         RgbPixel(r, g, b)
-    }
-
-    pub fn with_red(&self, r: u8) -> Self {
-        RgbPixel(r, self.1, self.2)
-    }
-
-    pub fn with_blue(&self, g: u8) -> Self {
-        RgbPixel(self.0, g, self.2)
-    }
-
-    pub fn with_green(&self, b: u8) -> Self {
-        RgbPixel(self.0, self.1, b)
     }
 
     /// Adds an error to each of the channels.
@@ -102,12 +90,21 @@ impl RgbPixel {
         current_colour.get().into()
     }
 
-    pub fn mix(&self, other: &RgbPixel) -> RgbPixel {
+    /// Mixes two colours together to produce a third colour.
+    pub fn mix(&self, other: &RgbPixel) -> Self {
         RgbPixel(
             average(&[self.0, other.0]).round() as u8,
             average(&[self.1, other.1]).round() as u8,
             average(&[self.2, other.2]).round() as u8,
         )
+    }
+
+    pub fn build_gradient(&self, bits: u16) -> Vec<Self> {
+        let fractional = 1 as f32 / bits as f32;
+        (0..=bits)
+            .into_iter()
+            .map(|i| self.to_hsl().add_luminance(-2.0).add_luminance(i as f32 * fractional).to_rgb())
+            .collect()
     }
 
     /// Gets the error in channel values between itself and another `RgbPixel`.
