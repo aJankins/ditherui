@@ -1,10 +1,8 @@
 use image_filters::{
-    utils::{image::load_image, ImageFilterResult}, 
-    pixel::{
-        hsl::HslPixel,
-        rgb::colours as RGB
-    }, 
-    prelude::*, hsl_gradient_map
+    hsl_gradient_map,
+    pixel::{hsl::HslPixel, rgb::colours as RGB},
+    prelude::*,
+    utils::{image::load_image, ImageFilterResult},
 };
 
 // this file is essentially for testing / running the code, more than providing an actual reusable binary
@@ -25,8 +23,9 @@ fn main() -> ImageFilterResult<()> {
         RGB::GOLD.build_gradient(5),
         RGB::PURPLE.build_gradient(2),
         RGB::BLUE.build_gradient(2),
-    ].concat();
-    
+    ]
+    .concat();
+
     let _hue_palette: Vec<f32> = (0..=13).into_iter().map(|i| i as f32 * 30.0).collect();
 
     load_image("data/input.png")?

@@ -16,13 +16,9 @@ impl From<&Rgb<u8>> for MonoPixel {
     fn from(value: &Rgb<u8>) -> Self {
         let [r, g, b] = value.0;
         let luminance = (r.max(g).max(b) as u16 + r.min(g).min(b) as u16) / 2;
-        MonoPixel(
-            luminance as u8
-        )
+        MonoPixel(luminance as u8)
     }
 }
-
-
 
 impl MonoPixel {
     /// Adds an error to the luminance of the pixel.

@@ -1,14 +1,27 @@
 use image::DynamicImage;
 
-use crate::{ImageEffect, pixel::rgb::RgbPixel};
+use crate::{pixel::rgb::RgbPixel, ImageEffect};
 
 use super::{
-    basic::{basic_mono_dither, basic_colour_dither}, bayer::{bayer_mono_dither, bayer_dither}, errorpropagate::{floydsteinberg::{floyd_steinberg_mono_dither, floyd_steinberg_rgb_dither}, jarvisjudiceninke::{jarvis_judice_ninke_mono_dither, jarvis_judice_ninke_rgb_dither}, stucki::{stucki_mono_dither, stucki_rgb_dither}, atkinson::{atkinson_mono_dither, atkinson_rgb_dither}, burkes::{burkes_mono_dither, burkes_rgb_dither}, sierra::{sierra_mono_dither, two_row_sierra_mono_dither, sierra_lite_mono_dither, sierra_rgb_dither, two_row_sierra_rgb_dither, sierra_lite_rgb_dither}}};
+    basic::{basic_colour_dither, basic_mono_dither},
+    bayer::{bayer_dither, bayer_mono_dither},
+    errorpropagate::{
+        atkinson::{atkinson_mono_dither, atkinson_rgb_dither},
+        burkes::{burkes_mono_dither, burkes_rgb_dither},
+        floydsteinberg::{floyd_steinberg_mono_dither, floyd_steinberg_rgb_dither},
+        jarvisjudiceninke::{jarvis_judice_ninke_mono_dither, jarvis_judice_ninke_rgb_dither},
+        sierra::{
+            sierra_lite_mono_dither, sierra_lite_rgb_dither, sierra_mono_dither, sierra_rgb_dither,
+            two_row_sierra_mono_dither, two_row_sierra_rgb_dither,
+        },
+        stucki::{stucki_mono_dither, stucki_rgb_dither},
+    },
+};
 
 /// 1-bit dithering algorithms.
 pub enum MonoAlgorithms {
     /// The basic 1-bit error propagation method.
-    /// 
+    ///
     /// Results in the worst quality output, but included for curiosity's sake.
     Basic,
     /// Floyd Steinberg 1-bit dithering.
@@ -28,7 +41,7 @@ pub enum MonoAlgorithms {
     /// Sierra Lite 1-bit dithering.
     SierraLite,
     /// Bayer / Ordered 1-bit dithering.
-    /// 
+    ///
     /// Accepts the matrix size. 1 results in no dithering, and 4+ is recommended.
     /// Isn't as accurate as the error propagation methods, but can be stylistically preferred.
     Bayer(usize),
@@ -38,7 +51,7 @@ pub enum MonoAlgorithms {
 /// be quantized to.
 pub enum Algorithms<'a> {
     /// The basic error propagation method.
-    /// 
+    ///
     /// Results in the worst quality output, but included for curiosity's sake
     Basic(&'a [RgbPixel]),
     /// Floyd Steinberg dithering.
@@ -58,7 +71,7 @@ pub enum Algorithms<'a> {
     /// Sierra lite dithering.
     SierraLite(&'a [RgbPixel]),
     /// Bayer / Ordered dithering.
-    /// 
+    ///
     /// Accepts the matrix size. 1 results in no dithering, and 4+ is recommended.
     /// Isn't as accurate as the error propagation methods, but can be stylistically preferred.
     Bayer(usize, &'a [RgbPixel]),
@@ -93,7 +106,7 @@ impl<'a> ImageEffect<DynamicImage> for Algorithms<'a> {
             Self::Sierra(palette) => sierra_rgb_dither(image, palette),
             Self::SierraTwoRow(palette) => two_row_sierra_rgb_dither(image, palette),
             Self::SierraLite(palette) => sierra_lite_rgb_dither(image, palette),
-            Self::Bayer(n, palette) => bayer_dither(image, *n, palette)
+            Self::Bayer(n, palette) => bayer_dither(image, *n, palette),
         }
     }
 }

@@ -44,11 +44,14 @@ impl From<&str> for RgbPixel {
         let g = u8::from_str_radix(&value[2..=3], 16);
         let b = u8::from_str_radix(&value[4..=5], 16);
 
-        if let (Ok(ru), Ok(gu), Ok(bu)) = (r,g,b) {
+        if let (Ok(ru), Ok(gu), Ok(bu)) = (r, g, b) {
             RgbPixel(ru, gu, bu)
         } else {
-            println!("WARNING! Couldn't convert {} into an RGB value. Returning black.", value);
-            RgbPixel(0,0,0)
+            println!(
+                "WARNING! Couldn't convert {} into an RGB value. Returning black.",
+                value
+            );
+            RgbPixel(0, 0, 0)
         }
     }
 }
@@ -78,7 +81,7 @@ impl RgbPixel {
     pub fn quantize(&self, palette: &[RgbPixel]) -> RgbPixel {
         let mut closest_distance = f64::MAX;
         let mut current_colour = self;
-    
+
         for colour in palette.iter() {
             let distance = colour.get_difference(self);
             if distance < closest_distance {
@@ -86,7 +89,7 @@ impl RgbPixel {
                 closest_distance = distance;
             };
         }
-    
+
         current_colour.get().into()
     }
 
@@ -103,7 +106,12 @@ impl RgbPixel {
         let fractional = 1 as f32 / bits as f32;
         (0..=bits)
             .into_iter()
-            .map(|i| self.to_hsl().add_luminance(-2.0).add_luminance(i as f32 * fractional).to_rgb())
+            .map(|i| {
+                self.to_hsl()
+                    .add_luminance(-2.0)
+                    .add_luminance(i as f32 * fractional)
+                    .to_rgb()
+            })
             .collect()
     }
 
@@ -127,14 +135,14 @@ impl RgbPixel {
 
         let diff_r = (2.0 + avg_r / 256.0) * (self.0 as i32 - other.0 as i32).pow(2) as f64;
         let diff_g = 4 * (self.1 as i32 - other.1 as i32).pow(2);
-        let diff_b = (2.0 + (255.0 - avg_r) / 256.0) * (self.0 as i32 - other.0 as i32).pow(2) as f64;
+        let diff_b =
+            (2.0 + (255.0 - avg_r) / 256.0) * (self.0 as i32 - other.0 as i32).pow(2) as f64;
 
         diff_r + diff_g as f64 + diff_b
     }
 
     fn _weighed_euclidean_diff(&self, other: &RgbPixel) -> f64 {
-        let m = 
-            if self.0 > 127 {(3, 4, 2)} else {(2, 4, 3)};
+        let m = if self.0 > 127 { (3, 4, 2) } else { (2, 4, 3) };
 
         let diff_r = m.0 as f64 * (self.0 as f64 - other.0 as f64).powf(2.0);
         let diff_g = m.1 as f64 * (self.1 as f64 - other.1 as f64).powf(2.0);
@@ -152,9 +160,9 @@ impl RgbPixel {
     }
 
     fn _naive_diff(&self, other: &RgbPixel) -> f64 {
-        let r_sc = ((self.0 as f64 - other.0 as f64)).powf(2.0);
-        let g_sc = ((self.1 as f64 - other.1 as f64)).powf(2.0);
-        let b_sc = ((self.2 as f64 - other.2 as f64)).powf(2.0);
+        let r_sc = (self.0 as f64 - other.0 as f64).powf(2.0);
+        let g_sc = (self.1 as f64 - other.1 as f64).powf(2.0);
+        let b_sc = (self.2 as f64 - other.2 as f64).powf(2.0);
 
         r_sc + g_sc + b_sc
     }

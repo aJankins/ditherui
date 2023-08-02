@@ -1,7 +1,7 @@
 use ::image::ImageError;
 
-pub mod numops;
 pub mod image;
+pub mod numops;
 
 #[derive(Debug)]
 pub enum Error {

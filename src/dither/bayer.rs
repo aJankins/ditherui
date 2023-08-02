@@ -1,12 +1,14 @@
 use image::{DynamicImage, Pixel};
-use ndarray::{Array, Dim, concatenate, Axis};
+use ndarray::{concatenate, Array, Axis, Dim};
 
-use crate::{utils::numops::average, pixel::rgb::RgbPixel};
+use crate::{pixel::rgb::RgbPixel, utils::numops::average};
 
 fn dither_matrix(n: usize) -> Array<f64, Dim<[usize; 2]>> {
-    if n == 1 { return Array::<f64, _>::zeros((1, 1)) }
+    if n == 1 {
+        return Array::<f64, _>::zeros((1, 1));
+    }
 
-    let nested_matrix = dither_matrix(n/2);
+    let nested_matrix = dither_matrix(n / 2);
     let multiplier = n.pow(2) as f64;
 
     let first = multiplier * nested_matrix.clone();
@@ -30,12 +32,14 @@ pub fn bayer_mono_dither(image: DynamicImage, dither_size: usize) -> DynamicImag
         let ys = y as usize;
 
         let mono = average(pixel.channels()) as u8;
-        let mapped_pixel = mono as f64 + (255.0 *
-            (matrix.get((xs % dither_size, ys % dither_size)).unwrap_or(&0.0) - 0.5));
+        let mapped_pixel = mono as f64
+            + (255.0
+                * (matrix
+                    .get((xs % dither_size, ys % dither_size))
+                    .unwrap_or(&0.0)
+                    - 0.5));
 
-        let threshold = if mapped_pixel > 128.0
-            { 255 } else { 0 };
-
+        let threshold = if mapped_pixel > 128.0 { 255 } else { 0 };
 
         pixel[0] = threshold as u8;
         pixel[1] = threshold as u8;
@@ -56,9 +60,16 @@ pub fn bayer_dither(image: DynamicImage, dither_size: usize, palette: &[RgbPixel
 
         let rgb = RgbPixel::from(&*pixel);
 
-        let offset = ((255.0 / 3.0) * (matrix.get((xs % dither_size, ys % dither_size)).unwrap_or(&0.0) - 0.5)) as i32;
+        let offset = ((255.0 / 3.0)
+            * (matrix
+                .get((xs % dither_size, ys % dither_size))
+                .unwrap_or(&0.0)
+                - 0.5)) as i32;
 
-        (pixel[0], pixel[1], pixel[2]) = rgb.add_error((offset, offset, offset)).quantize(palette).get();
+        (pixel[0], pixel[1], pixel[2]) = rgb
+            .add_error((offset, offset, offset))
+            .quantize(palette)
+            .get();
     }
 
     DynamicImage::ImageRgb8(rgb8_image)

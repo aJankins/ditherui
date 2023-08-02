@@ -1,38 +1,38 @@
 use image::DynamicImage;
 
-use crate::{ImageEffect, pixel::rgb::RgbPixel};
+use crate::{pixel::rgb::RgbPixel, ImageEffect};
 
 /// Algorithms for applying filters to an image.
 pub enum Algorithms<'a> {
     /// Rotates the hue based on the amount of degrees passed.
     RotateHue(f32),
     /// Modifies the contrast of the image.
-    /// 
+    ///
     /// `1.0` means no change. Above adds contrast, below decreases it.
     Contrast(f32),
     /// Modifies the brightness of the image.
-    /// 
+    ///
     /// This will directly affect the luminance of each pixel - which ranges between 0.0 and 1.0.
     /// Therefore `1.0` will turn the image white, and `-1.0` will turn the image black.
     Brighten(f32),
     /// Modifies the saturation of the image.
-    /// 
+    ///
     /// This will directly affect the saturation of each pixel - which ranges between 0.0 and 1.0.
     /// Therefore `1.0` will maximally saturate each pixel, and `-1.0` will turn the image grayscale.
     Saturate(f32),
     /// Applies a gradient map to the image.
-    /// 
+    ///
     /// The gradient map is defined as a slice of tuples containing the *colour* and its threshold.
     /// Each pixel in the image will be mapped to the gradient using its luminance value.
-    /// 
+    ///
     /// The threshold must be between `0.0` and `1.0` - you can technically use other values but the results
     /// may be a bit weird.
-    /// 
+    ///
     /// As an example, to turn an image grayscale you could pass the colour black at `0.0` and the colour
     /// white at `1.0`.
     GradientMap(&'a [(RgbPixel, f32)]),
     /// Quantizes the hue of each pixel to one of the hues passed.
-    /// 
+    ///
     /// This ignores luminance or saturation and *only* changes the hue - useful for defining a colour
     /// scheme without losing detail.
     QuantizeHue(&'a [f32]),
@@ -86,7 +86,7 @@ fn apply_brightness(image: DynamicImage, amount: f32) -> DynamicImage {
         hsl.add_luminance(amount);
         (pixel[0], pixel[1], pixel[2]) = hsl.to_rgb().get();
     }
-    
+
     DynamicImage::ImageRgb8(rgb8_image)
 }
 
@@ -98,7 +98,7 @@ fn apply_saturation(image: DynamicImage, amount: f32) -> DynamicImage {
         hsl.add_saturation(amount);
         (pixel[0], pixel[1], pixel[2]) = hsl.to_rgb().get();
     }
-    
+
     DynamicImage::ImageRgb8(rgb8_image)
 }
 
@@ -113,7 +113,7 @@ fn apply_gradient_map(image: DynamicImage, gradient: &[(RgbPixel, f32)]) -> Dyna
 
         let index = sorted.iter().position(|(_, threshold)| l < *threshold);
         if let Some(index) = index {
-            let prev_col = sorted.get(index-1);
+            let prev_col = sorted.get(index - 1);
             let curr_col = sorted.get(index);
 
             if prev_col.and(curr_col).is_some() {
@@ -130,9 +130,9 @@ fn apply_gradient_map(image: DynamicImage, gradient: &[(RgbPixel, f32)]) -> Dyna
                 let (p_r, p_g, p_b) = p_rgb.get();
 
                 let (new_r, new_g, new_b) = (
-                    ((c_ratio * c_r as f32 + p_ratio * p_r as f32)),
-                    ((c_ratio * c_g as f32 + p_ratio * p_g as f32)),
-                    ((c_ratio * c_b as f32 + p_ratio * p_b as f32)),
+                    (c_ratio * c_r as f32 + p_ratio * p_r as f32),
+                    (c_ratio * c_g as f32 + p_ratio * p_g as f32),
+                    (c_ratio * c_b as f32 + p_ratio * p_b as f32),
                 );
 
                 (pixel[0], pixel[1], pixel[2]) = (

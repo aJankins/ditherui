@@ -10,7 +10,6 @@ impl From<(f32, f32, f32)> for HslPixel {
     }
 }
 
-
 impl From<RgbPixel> for HslPixel {
     fn from(value: RgbPixel) -> Self {
         let (r, g, b) = value.get();
@@ -20,39 +19,43 @@ impl From<RgbPixel> for HslPixel {
         let rgb_min = (r.min(g).min(b)) as f32;
         let chroma = (rgb_max - rgb_min) as f32;
 
-        let hue =
-            if chroma == 0.0 { 
-                0.0 
-            } else if rgb_max == r {
-                ((g-b)/chroma) % 6.0
-            } else if rgb_max == g {
-                ((b-r)/chroma) + 2.0
-            } else if rgb_max == b {
-                ((r-g)/chroma) + 4.0
-            } else {
-                panic!("None of R:{} G:{} B:{} matched the RGB_MAX:{}", r, g, b, rgb_max)
-            } * 60.0;
+        let hue = if chroma == 0.0 {
+            0.0
+        } else if rgb_max == r {
+            ((g - b) / chroma) % 6.0
+        } else if rgb_max == g {
+            ((b - r) / chroma) + 2.0
+        } else if rgb_max == b {
+            ((r - g) / chroma) + 4.0
+        } else {
+            panic!(
+                "None of R:{} G:{} B:{} matched the RGB_MAX:{}",
+                r, g, b, rgb_max
+            )
+        } * 60.0;
 
         let lightness = (rgb_max + rgb_min) / 2.0;
 
-        let saturation = 
-            if lightness == 0.0 || lightness == 1.0 { 0.0 }
-            else { chroma / (1.0 - (2.0 * lightness - 1.0).abs()) };
+        let saturation = if lightness == 0.0 || lightness == 1.0 {
+            0.0
+        } else {
+            chroma / (1.0 - (2.0 * lightness - 1.0).abs())
+        };
 
-        return HslPixel(hue, saturation, lightness)
+        return HslPixel(hue, saturation, lightness);
     }
 }
 
 impl HslPixel {
     /// Converts an HslPixel into an RgbPixel.
     pub fn to_rgb(self) -> RgbPixel {
-        let chroma = (1.0 - (2.0*self.2 - 1.0).abs()) * self.1;
+        let chroma = (1.0 - (2.0 * self.2 - 1.0).abs()) * self.1;
         let hue_degree = self.get_normalized_hue() / 60.0;
         let x = chroma * (1.0 - ((hue_degree % 2.0) - 1.0).abs());
 
         let hue_degree = hue_degree as i8;
 
-        let (r1, g1, b1) = if hue_degree >= 0 &&  hue_degree < 1 {
+        let (r1, g1, b1) = if hue_degree >= 0 && hue_degree < 1 {
             (chroma, x, 0.0)
         } else if hue_degree < 2 {
             (x, chroma, 0.0)
@@ -65,16 +68,20 @@ impl HslPixel {
         } else if hue_degree < 6 {
             (chroma, 0.0, x)
         } else {
-            panic!("Hue degree should be between 0 and 1 - was actually: {}", hue_degree)
+            panic!(
+                "Hue degree should be between 0 and 1 - was actually: {}",
+                hue_degree
+            )
         };
 
         let m = self.2 - (chroma / 2.0);
 
         (
-            ((r1+m)*255.0).round() as u8,
-            ((g1+m)*255.0).round() as u8,
-            ((b1+m)*255.0).round() as u8
-        ).into()
+            ((r1 + m) * 255.0).round() as u8,
+            ((g1 + m) * 255.0).round() as u8,
+            ((b1 + m) * 255.0).round() as u8,
+        )
+            .into()
     }
 
     /// Adds (rotates) the hue.
@@ -120,8 +127,11 @@ impl HslPixel {
 
     fn normalize_hue(hue: f32) -> f32 {
         loop {
-            if hue >= 0.0 { break hue % 360.0 }
-            else { break (hue % 360.0) + 360.0 }
+            if hue >= 0.0 {
+                break hue % 360.0;
+            } else {
+                break (hue % 360.0) + 360.0;
+            }
         }
     }
 
