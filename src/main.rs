@@ -1,21 +1,21 @@
 use image_filters::{
     utils::{image::load_image, ImageFilterResult}, 
     pixel::{hsl::HslPixel, rgb::{colours as RGB, RgbPixel}}, 
-    prelude::*
+    prelude::*, hsl_gradient_map
 };
 
 // this file is essentially for testing / running the code, more than providing an actual reusable binary
 
 fn main() -> ImageFilterResult<()> {
-    let gradient = [
-        (HslPixel::from((   0.0, 0.0, 0.0 )).to_rgb(), 0.00),
-        (HslPixel::from(( 340.0, 0.8, 0.4 )).to_rgb(), 0.30),
-        (HslPixel::from(( 180.0, 0.8, 0.5 )).to_rgb(), 0.60),
-        (HslPixel::from((  40.0, 0.8, 0.8 )).to_rgb(), 0.80),
-        (HslPixel::from((   0.0, 0.0, 1.0 )).to_rgb(), 1.00),
+    let gradient = hsl_gradient_map![
+        0.00 => sat: 0.0, lum: 0.0, hue: 0.0,
+        0.30 => sat: 0.8, lum: 0.3, hue: 280.0,
+        0.60 => sat: 0.8, lum: 0.6, hue: 200.0,
+        0.80 => sat: 0.8, lum: 0.8, hue: 40.0,
+        1.00 => sat: 0.0, lum: 1.0, hue: 260.0
     ];
 
-    let mut palette = [
+    let palette = [
         RGB::CYAN.build_gradient(10),
         RGB::ROSE.build_gradient(10),
         RGB::PINK.build_gradient(10),
@@ -24,12 +24,12 @@ fn main() -> ImageFilterResult<()> {
         RGB::BLUE.build_gradient(2),
     ].concat();
     
-    let hue_palette = [40.0, 180.0, 330.0];
+    let hue_palette: Vec<f32> = (0..=13).into_iter().map(|i| i as f32 * 30.0).collect();
 
     load_image("data/input.png")?
-        // .apply(Filter::GradientMap(&gradient))
+        .apply(Filter::GradientMap(&gradient))
         // .apply(Filter::QuantizeHue(&hue_palette))
-        // .apply(Filter::Contrast(2.0))
+        .apply(Filter::Contrast(1.3))
         .apply(Dither::Bayer(8, &palette))
         // .apply(Dither::Bayer(120, &palette))
         // .apply(Filter::Saturate(0.5))

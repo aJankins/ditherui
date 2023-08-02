@@ -65,6 +65,32 @@ impl AdjustableImage for DynamicImage {
     }
 }
 
+#[macro_export]
+/// Helps construct a gradient map from HSL values.
+/// 
+/// You *could* construct the map yourself, however the purpose of this is mostly to
+/// provide an easily usable and *clean* way to generate a gradient map from HSL values.
+/// 
+/// The following is an example usage of this macro:
+/// ```
+/// let gradient = hsl_gradient_map![
+///     0.00 => sat: 0.0, lum: 0.0, hue: 0.0,
+///     0.30 => sat: 0.8, lum: 0.4, hue: 0.0,
+///     0.60 => sat: 0.8, lum: 0.5, hue: 30.0,
+///     0.80 => sat: 0.8, lum: 0.8, hue: 60.0,
+///     1.00 => sat: 0.0, lum: 1.0, hue: 90.0
+/// ];
+/// ```
+macro_rules! hsl_gradient_map {
+    [$($threshold:expr => sat: $sat:expr, lum: $lum:expr, hue: $hue:expr),*] => {
+        [
+            $(
+                (HslPixel::from(($hue, $sat, $lum)).to_rgb(), $threshold)
+            ),*
+        ]
+    };
+}
+
 #[cfg(test)]
 mod test {
     use image::{ImageResult, DynamicImage};
