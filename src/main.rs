@@ -1,6 +1,9 @@
 use image_filters::{
     utils::{image::load_image, ImageFilterResult}, 
-    pixel::{hsl::HslPixel, rgb::{colours as RGB, RgbPixel}}, 
+    pixel::{
+        hsl::HslPixel,
+        rgb::colours as RGB
+    }, 
     prelude::*, hsl_gradient_map
 };
 
@@ -24,7 +27,7 @@ fn main() -> ImageFilterResult<()> {
         RGB::BLUE.build_gradient(2),
     ].concat();
     
-    let hue_palette: Vec<f32> = (0..=13).into_iter().map(|i| i as f32 * 30.0).collect();
+    let _hue_palette: Vec<f32> = (0..=13).into_iter().map(|i| i as f32 * 30.0).collect();
 
     load_image("data/input.png")?
         .apply(Filter::GradientMap(&gradient))
