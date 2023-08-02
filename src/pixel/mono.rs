@@ -1,6 +1,6 @@
 use image::Rgb;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 /// Represents a monochromatic pixel. It only has one value, which effectively represents the luminance.
 pub struct MonoPixel(u8);
 

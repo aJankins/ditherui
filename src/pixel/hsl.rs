@@ -1,6 +1,6 @@
 use super::rgb::RgbPixel;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 /// Represents a pixel in the HSL colour space. Saturation and luminance are clamped at `0.0` to `1.0` - whereas hue can be any valid `f32` value.
 pub struct HslPixel(f32, f32, f32);
 

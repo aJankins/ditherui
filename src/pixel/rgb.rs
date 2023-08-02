@@ -4,9 +4,33 @@ use crate::utils::numops::average;
 
 use super::hsl::HslPixel;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 /// Represents a pixel in the RGB colour space. Each value (RGB) ranges between 0 and 255.
 pub struct RgbPixel(u8, u8, u8);
+
+pub mod colours {
+    use super::RgbPixel;
+
+    // 1-bit
+    pub static BLACK: RgbPixel = RgbPixel(0, 0, 0);
+    pub static WHITE: RgbPixel = RgbPixel(255, 255, 255);
+
+    // primary colours
+    pub static RED: RgbPixel = RgbPixel(255, 0, 0);
+    pub static GREEN: RgbPixel = RgbPixel(0, 255, 0);
+    pub static BLUE: RgbPixel = RgbPixel(0, 0, 255);
+
+    // secondary colours
+    pub static YELLOW: RgbPixel = RgbPixel(255, 255, 0);
+    pub static PURPLE: RgbPixel = RgbPixel(255, 0, 255);
+    pub static CYAN: RgbPixel = RgbPixel(0, 255, 255);
+
+    // other common colours
+    pub static MAGENTA: RgbPixel = RgbPixel(255, 40, 200);
+    pub static PINK: RgbPixel = RgbPixel(255, 155, 155);
+    pub static ROSE: RgbPixel = RgbPixel(255, 0, 150);
+    pub static GOLD: RgbPixel = RgbPixel(255, 200, 40);
+}
 
 impl From<(u8, u8, u8)> for RgbPixel {
     fn from(value: (u8, u8, u8)) -> Self {
@@ -37,6 +61,22 @@ impl From<&Rgb<u8>> for RgbPixel {
 }
 
 impl RgbPixel {
+    pub fn with(r: u8, g: u8, b: u8) -> Self {
+        RgbPixel(r, g, b)
+    }
+
+    pub fn with_red(&self, r: u8) -> Self {
+        RgbPixel(r, self.1, self.2)
+    }
+
+    pub fn with_blue(&self, g: u8) -> Self {
+        RgbPixel(self.0, g, self.2)
+    }
+
+    pub fn with_green(&self, b: u8) -> Self {
+        RgbPixel(self.0, self.1, b)
+    }
+
     /// Adds an error to each of the channels.
     pub fn add_error(self, error: (i32, i32, i32)) -> RgbPixel {
         RgbPixel(
@@ -62,6 +102,14 @@ impl RgbPixel {
         current_colour.get().into()
     }
 
+    pub fn mix(&self, other: &RgbPixel) -> RgbPixel {
+        RgbPixel(
+            average(&[self.0, other.0]).round() as u8,
+            average(&[self.1, other.1]).round() as u8,
+            average(&[self.2, other.2]).round() as u8,
+        )
+    }
+
     /// Gets the error in channel values between itself and another `RgbPixel`.
     pub fn get_error(&self, other: &RgbPixel) -> (i32, i32, i32) {
         (
@@ -75,11 +123,6 @@ impl RgbPixel {
     /// weighted euclidean method.
     pub fn get_difference(&self, other: &RgbPixel) -> f64 {
         self._weighed_euclidean_diff(other)
-
-        // kept incase
-        // self._redmean_diff(other)
-        // self._weighted_cartesian_diff(other)
-        // self._naive_diff(other)
     }
 
     fn _redmean_diff(&self, other: &RgbPixel) -> f64 {
