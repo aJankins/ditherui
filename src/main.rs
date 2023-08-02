@@ -9,28 +9,26 @@ use image_filters::{
 fn main() -> ImageFilterResult<()> {
     let gradient = [
         (HslPixel::from((   0.0, 0.0, 0.0 )).to_rgb(), 0.00),
-        (HslPixel::from(( 325.0, 0.5, 0.4 )).to_rgb(), 0.40),
-        (HslPixel::from(( 300.0, 0.5, 0.5 )).to_rgb(), 0.50),
-        (HslPixel::from(( 250.0, 0.5, 0.6 )).to_rgb(), 0.60),
-        (HslPixel::from(( 200.0, 0.5, 0.7 )).to_rgb(), 0.70),
-        (HslPixel::from(( 400.0, 0.5, 0.8 )).to_rgb(), 0.80),
+        (HslPixel::from(( 340.0, 0.8, 0.4 )).to_rgb(), 0.30),
+        (HslPixel::from(( 180.0, 0.8, 0.5 )).to_rgb(), 0.60),
+        (HslPixel::from((  40.0, 0.8, 0.8 )).to_rgb(), 0.80),
         (HslPixel::from((   0.0, 0.0, 1.0 )).to_rgb(), 1.00),
     ];
 
     let palette = [
         "FFFFFF",
-        "003355", "0088AA", "00FFDD",
-        "660055", "BB00AA", "FF00EE",
-        "FFEE44",
+        "FF00BB", "880066",
+        "00FFFF", "008888",
+        "FFBB00", "886600",
         "000000",
     ].map(|hex| hex.into());
+    
+    let hue_palette = [40.0, 180.0, 330.0];
 
     load_image("data/input.png")?
-        // .apply(Colours::GradientMap(&gradient))
-        // .apply(Colour::Brighten(0.1))
-        // .apply(Colour::Contrast(1.3))
-        // .apply(Dither::Bayer(8, &palette))
-        .apply(Dither::Bayer(2, &palette))
+        .apply(Filter::GradientMap(&gradient))
+        .apply(Filter::QuantizeHue(&hue_palette))
+        .apply(Dither::Bayer(8, &palette))
         .save("data/output.png")?;
 
     Ok(())

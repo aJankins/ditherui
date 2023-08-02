@@ -95,11 +95,33 @@ impl HslPixel {
         self
     }
 
+    pub fn quantize_hue(&mut self, hues: &[f32]) -> &mut Self {
+        let mut closest_dist = f32::MAX;
+        let pixel_hue = self.get_normalized_hue();
+        let mut current_hue = pixel_hue;
+
+        for hue in hues.iter() {
+            let normalized = Self::normalize_hue(*hue);
+            let distance = (normalized - pixel_hue).abs();
+            if distance < closest_dist {
+                closest_dist = distance;
+                current_hue = normalized;
+            }
+        }
+
+        self.0 = current_hue;
+        self
+    }
+
     /// Retrieves the hue as a value between 0 and 360.
     fn get_normalized_hue(&self) -> f32 {
+        Self::normalize_hue(self.0)
+    }
+
+    fn normalize_hue(hue: f32) -> f32 {
         loop {
-            if self.0 >= 0.0 { break self.0 % 360.0 }
-            else { break (self.0 % 360.0) + 360.0 }
+            if hue >= 0.0 { break hue % 360.0 }
+            else { break (hue % 360.0) + 360.0 }
         }
     }
 

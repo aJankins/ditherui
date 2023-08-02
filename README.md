@@ -30,13 +30,14 @@ Currently supports the following algorithms:
 
 Currently supports the following effects:
 
-|         **Name** | *Image*                             |
-| ---------------: | ----------------------------------- |
-|    brighten +0.2 | ![](./data/colour/brighten+0.2.png) |
-|    brighten -0.2 | ![](./data/colour/brighten-0.2.png) |
-|     contrast 0.5 | ![](./data/colour/contrast.0.5.png) |
-|     contrast 1.5 | ![](./data/colour/contrast.1.5.png) |
+|         **Name** | *Image*                                |
+| ---------------: | -------------------------------------- |
+|    brighten +0.2 | ![](./data/colour/brighten+0.2.png)    |
+|    brighten -0.2 | ![](./data/colour/brighten-0.2.png)    |
+|     contrast 0.5 | ![](./data/colour/contrast.0.5.png)    |
+|     contrast 1.5 | ![](./data/colour/contrast.1.5.png)    |
 | gradient mapping | ![](./data/colour/gradient-mapped.png) |
-|   rotate hue 180 | ![](./data/colour/rotate-hue-180.png) |
-|    saturate +0.2 | ![](./data/colour/saturate+0.2.png) |
-|    saturate -0.2 | ![](./data/colour/saturate-0.2.png) |
+|   rotate hue 180 | ![](./data/colour/rotate-hue-180.png)  |
+|    saturate +0.2 | ![](./data/colour/saturate+0.2.png)    |
+|    saturate -0.2 | ![](./data/colour/saturate-0.2.png)    |
+|     quantize hue | ![](./data/colour/quantize-hue.png)    |

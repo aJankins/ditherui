@@ -31,6 +31,11 @@ pub enum Algorithms<'a> {
     /// As an example, to turn an image grayscale you could pass the colour black at `0.0` and the colour
     /// white at `1.0`.
     GradientMap(&'a [(RgbPixel, f32)]),
+    /// Quantizes the hue of each pixel to one of the hues passed.
+    /// 
+    /// This ignores luminance or saturation and *only* changes the hue - useful for defining a colour
+    /// scheme without losing detail.
+    QuantizeHue(&'a [f32]),
 }
 
 impl<'a> ImageEffect<DynamicImage> for Algorithms<'a> {
@@ -41,6 +46,7 @@ impl<'a> ImageEffect<DynamicImage> for Algorithms<'a> {
             Self::Brighten(amount) => apply_brightness(image, *amount),
             Self::Saturate(amount) => apply_saturation(image, *amount),
             Self::GradientMap(gradient) => apply_gradient_map(image, gradient),
+            Self::QuantizeHue(hues) => apply_quantize_hue(image, hues),
         }
     }
 }
@@ -138,6 +144,18 @@ fn apply_gradient_map(image: DynamicImage, gradient: &[(RgbPixel, f32)]) -> Dyna
                 (pixel[0], pixel[1], pixel[2]) = curr_col.unwrap().0.get();
             }
         }
+    }
+
+    DynamicImage::ImageRgb8(rgb8_image)
+}
+
+fn apply_quantize_hue(image: DynamicImage, hues: &[f32]) -> DynamicImage {
+    let mut rgb8_image = image.into_rgb8();
+
+    for pixel in rgb8_image.pixels_mut() {
+        let mut hsl = RgbPixel::from(&*pixel).to_hsl();
+        hsl.quantize_hue(hues);
+        (pixel[0], pixel[1], pixel[2]) = hsl.to_rgb().get();
     }
 
     DynamicImage::ImageRgb8(rgb8_image)

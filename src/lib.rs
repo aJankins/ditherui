@@ -18,9 +18,9 @@
 //! `.apply` on a `DynamicImage` directly. For comparison, here are both approaches for applying
 //! an effect:
 //! 
-//! ```
-//! Colours::Brighten( 0.2).apply(image); // without trait
-//! image.apply(Colours::Brighten( 0.2)); // with trait
+//! ```ignore
+//! Filter::Brighten( 0.2).apply(image); // without trait
+//! image.apply(Filter::Brighten( 0.2)); // with trait
 //! ```
 //! 
 //! The benefit of this mostly comes when chaining effects together, and it's included mostly
@@ -97,7 +97,7 @@ mod test {
 
     #[test]
     fn colour_effects_test() -> ImageFilterResult<()> {
-        let image = load_image("data/original.png")?;
+        let image = load_image("data/input.png")?;
 
         image.clone().apply(Filter::RotateHue(180.0)).save("data/colour/rotate-hue-180.png")?;
         image.clone().apply(Filter::Brighten( 0.2)).save("data/colour/brighten+0.2.png")?;
@@ -116,6 +116,10 @@ mod test {
         ];
 
         image.clone().apply(Filter::GradientMap(&gradient_map)).save("data/colour/gradient-mapped.png")?;
+
+        let hue_palette = [40.0, 180.0, 330.0];
+        
+        image.clone().apply(Filter::QuantizeHue(&hue_palette)).save("data/colour/quantize-hue.png")?;
 
         Ok(())
     }
