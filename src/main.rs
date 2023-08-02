@@ -2,7 +2,7 @@ use image_filters::{
     hsl_gradient_map,
     pixel::{hsl::HslPixel, rgb::colours as RGB},
     prelude::*,
-    utils::{image::load_image, ImageFilterResult},
+    utils::{image::{load_image, resize_image, load_image_with_max_dim, load_image_from_url_with_max_dim}, ImageFilterResult},
 };
 
 // this file is essentially for testing / running the code, more than providing an actual reusable binary
@@ -26,15 +26,11 @@ fn main() -> ImageFilterResult<()> {
     ]
     .concat();
 
-    let _hue_palette: Vec<f32> = (0..=13).into_iter().map(|i| i as f32 * 30.0).collect();
-
-    load_image("data/input.png")?
-        .apply(Filter::GradientMap(&gradient))
-        // .apply(Filter::QuantizeHue(&hue_palette))
+    let link_to_image = "https://i.kym-cdn.com/photos/images/original/001/389/465/663.jpg";
+    load_image_from_url_with_max_dim(link_to_image, 1080)?
+        // .apply(Filter::GradientMap(&gradient))
         .apply(Filter::Contrast(1.3))
         .apply(Dither::Bayer(8, &palette))
-        // .apply(Dither::Bayer(120, &palette))
-        // .apply(Filter::Saturate(0.5))
         .save("data/output.png")?;
 
     Ok(())
