@@ -1,6 +1,11 @@
 // massive thanks to https://github.com/antimatter15/rgb-lab for providing a good example of an implementation
 use super::rgb::RgbPixel;
 
+/*
+    WARNING!
+    This may not be 100% accurate. Converting an image from RGB to LAB and back results in some errors.
+*/
+
 #[derive(Debug, Clone, Copy)]
 pub struct LabPixel(f32, f32, f32);
 

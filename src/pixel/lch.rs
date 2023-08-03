@@ -1,5 +1,10 @@
 use super::{lab::LabPixel, rgb::RgbPixel};
 
+/*
+    WARNING!
+    This may not be 100% accurate. Converting an image from RGB to LCH and back results in some errors.
+*/
+
 #[derive(Debug, Clone, Copy)]
 pub struct LchPixel(pub f32, pub f32, pub f32);
 
@@ -62,12 +67,12 @@ impl LchPixel {
     }
 
     pub fn add_luma(&mut self, luma: f32) -> &mut Self {
-        self.0 = self.0 + luma;
+        self.0 = (self.0 + luma).clamp(0.0, 100.0);
         self
     }
 
     pub fn add_chroma(&mut self, chroma: f32) -> &mut Self {
-        self.1 = self.1 + chroma;
+        self.1 = (self.1 + chroma).clamp(0.0, 132.0);
         self
     }
 
