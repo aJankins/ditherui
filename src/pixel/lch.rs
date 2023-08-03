@@ -64,6 +64,24 @@ impl LchPixel {
         self
     }
 
+    pub fn quantize_hue(&mut self, hues: &[f32]) -> &mut Self {
+        let mut closest_dist = f32::MAX;
+        let pixel_hue = ((self.2 % 360.0) + 360.0) % 360.0;
+        let mut current_hue = pixel_hue;
+
+        for hue in hues.iter() {
+            let normalized = ((hue % 360.0) + 360.0) % 360.0;
+            let distance = (normalized - pixel_hue).abs();
+            if distance < closest_dist {
+                closest_dist = distance;
+                current_hue = normalized;
+            }
+        }
+
+        self.2 = current_hue;
+        self
+    }
+
     pub fn distance_from(&self, other: &LchPixel) -> f32 {
         todo!("implement distance function CIE94 - use https://en.wikipedia.org/wiki/Color_difference#CIELAB_%CE%94E* as reference.");
     }

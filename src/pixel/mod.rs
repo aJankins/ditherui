@@ -21,7 +21,7 @@ pub mod lch;
 /// To convert, you should use the utilities in each color space module - especially since some conversions require intermediary steps.
 /// As an example, here are all the steps to convert RGB to LCH:
 /// 
-/// ```
+/// ```text
 /// RGB -> XYZ_D65 -> XYZ_D50 -> LAB -> LCH
 /// ```
 /// 

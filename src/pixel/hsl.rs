@@ -5,8 +5,8 @@ use super::{rgb::RgbPixel, conversions::{rgb_to_hsl, hsl_to_rgb}};
 /// The 3 components of an HSL pixel are as follows:
 /// 
 /// - Hue: Ranges from 0.0 to 360.0.
-/// - Saturation: Ranges from 0.0 to 100.0. (May not be currently true.)
-/// - Lightness: Ranges from 0.0 to 100.0 (May not currently be true.)
+/// - Saturation: Ranges from 0.0 to 1.0. (May not be currently true.)
+/// - Lightness: Ranges from 0.0 to 1.0 (May not currently be true.)
 /// 
 /// This is an improvement over RGB, however you may want to use LCH instead whose
 /// components more accurately reflect human vision.

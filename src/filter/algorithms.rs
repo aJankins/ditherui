@@ -77,8 +77,12 @@ fn apply_gradient_map(image: DynamicImage, gradient: &[(RgbPixel, f32)]) -> Dyna
     let mut sorted = Vec::from(gradient.clone());
     sorted.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
 
+    let mut max_l = f32::MIN;
+
     for pixel in rgb8_image.pixels_mut() {
-        let (_, _, l) = RgbPixel::from(&*pixel).as_hsl().get();
+        let (mut l, _, _) = RgbPixel::from(&*pixel).as_lch().get();
+
+        l = l / 100.0;
 
         let index = sorted.iter().position(|(_, threshold)| l < *threshold);
         if let Some(index) = index {
@@ -122,9 +126,9 @@ fn apply_quantize_hue(image: DynamicImage, hues: &[f32]) -> DynamicImage {
     let mut rgb8_image = image.into_rgb8();
 
     for pixel in rgb8_image.pixels_mut() {
-        let mut hsl = RgbPixel::from(&*pixel).as_hsl();
-        hsl.quantize_hue(hues);
-        (pixel[0], pixel[1], pixel[2]) = hsl.as_rgb().get_u8();
+        let mut lch = RgbPixel::from(&*pixel).as_lch();
+        lch.quantize_hue(hues);
+        (pixel[0], pixel[1], pixel[2]) = lch.as_rgb().get_u8();
     }
 
     DynamicImage::ImageRgb8(rgb8_image)

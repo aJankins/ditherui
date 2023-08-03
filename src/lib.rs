@@ -163,11 +163,9 @@ mod test {
             .save("data/colour/contrast.1.5.png")?;
 
         let gradient_map = [
-            ("000000".into(), 0.00),
-            ("0000FF".into(), 0.25),
-            ("FF0000".into(), 0.50),
-            ("00FF00".into(), 0.75),
-            ("FFFFFF".into(), 1.00),
+            ("0000FF".into(), 0.50),
+            ("FF0000".into(), 0.75),
+            ("00FF00".into(), 1.00),
         ];
 
         image
@@ -175,7 +173,7 @@ mod test {
             .apply(Filter::GradientMap(&gradient_map))
             .save("data/colour/gradient-mapped.png")?;
 
-        let hue_palette = [40.0, 180.0, 330.0];
+        let hue_palette = [180.0, 300.0];
 
         image
             .clone()
