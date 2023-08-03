@@ -99,23 +99,16 @@ mod test {
         dither::palettes,
         pixel::rgb::RgbPixel,
         prelude::*,
-        utils::{image::load_image, ImageFilterResult},
+        utils::{image::{load_image, load_image_from_url_with_max_dim}, ImageFilterResult},
     };
 
     #[test]
     fn dither_test() -> ImageFilterResult<()> {
-        let image = load_image("data/input.png")?;
-
-        let palette: &[RgbPixel] = &[
-            "FFFFFF", "003355", "0088AA", "00FFDD", "660055", "BB00AA", "FF00EE", "FFEE44",
-            "000000",
-        ]
-        .map(|tuple| tuple.into());
+        let image = load_image_from_url_with_max_dim("https://scied.ucar.edu/sites/default/files/styles/half_width/public/2021-10/cumulus-clouds.jpg.webp?itok=HkQfuWxM", 1080)?;
 
         mono(&image)?;
         colour_websafe(&image)?; // takes a long time due to large palette
         colour_eightbit(&image)?; // significantly faster
-        colour(&image, palette, Some("-custom-palette"))?; // custom palettes, uncomment a palette above for examples
 
         Ok(())
     }

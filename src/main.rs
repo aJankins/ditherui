@@ -16,22 +16,45 @@ fn main() -> ImageFilterResult<()> {
         1.00 => sat: 0.0, lum: 1.0, hue: 260.0
     ];
 
-    let palette = [
-        RGB::CYAN.build_gradient(10),
-        RGB::ROSE.build_gradient(10),
-        RGB::PINK.build_gradient(10),
-        RGB::GOLD.build_gradient(5),
-        RGB::PURPLE.build_gradient(2),
-        RGB::BLUE.build_gradient(2),
-    ]
-    .concat();
+    let pastel_palette = ("pastel", [
+        RGB::CYAN.mix(0.7, &RGB::BLUE).build_gradient(10),
+        RGB::PINK.mix(0.7, &RGB::RED).build_gradient(10),
+    ].concat());
 
-    let link_to_image = "https://i.kym-cdn.com/photos/images/original/001/389/465/663.jpg";
-    load_image_from_url_with_max_dim(link_to_image, 1080)?
-        // .apply(Filter::GradientMap(&gradient))
-        .apply(Filter::Contrast(1.3))
-        .apply(Dither::Bayer(8, &palette))
-        .save("data/output.png")?;
+    let rust_palette = ("rust", [
+        RGB::ORANGE.mix(0.2, &RGB::RED).build_gradient(5),
+        RGB::ORANGE.mix(0.5, &RGB::RED).build_gradient(5),
+        RGB::ORANGE.mix(0.9, &RGB::RED).build_gradient(5),
+        vec![
+            RGB::BLACK,
+        ],
+    ].concat());
+
+    let nb_palette = ("nb", [
+        RGB::GOLD.build_gradient(3),
+        RGB::PURPLE.build_gradient(10),
+        RGB::GOLD.build_gradient_mix(&RGB::PURPLE, 10),
+        vec![
+            RGB::BLACK,
+            RGB::WHITE,
+        ],
+    ].concat());
+
+    let palettes = [
+        &pastel_palette,
+        &rust_palette,
+        &nb_palette,
+    ];
+
+    let link_to_image = "https://scied.ucar.edu/sites/default/files/styles/half_width/public/2021-10/cumulus-clouds.jpg.webp?itok=HkQfuWxM";
+    let image = load_image_from_url_with_max_dim(link_to_image, 1080)?
+        .apply(Filter::Contrast(1.3));
+
+    for (name, palette) in palettes.into_iter() {
+        image.clone()
+            .apply(Dither::Bayer(8, &palette))
+            .save(format!("data/output-{}.png", name))?;
+    }
 
     Ok(())
 }
