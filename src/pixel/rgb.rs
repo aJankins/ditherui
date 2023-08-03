@@ -99,22 +99,24 @@ impl RgbPixel {
     }
 
     /// Mixes two colours together to produce a third colour.
-    /// 
+    ///
     /// Takes a factor that determines how much priority to give the *current* pixel.
-    /// 
+    ///
     /// - `0.5` mixes equally.
     /// - `> 0.5` prioritizes the *current* pixel.
     /// - `< 0.5` prioritizes the *other/parameter* pixel.
-    /// 
+    ///
     /// Putting it another way:
-    /// 
+    ///
     /// ```ignore
     /// RED.mix(&BLUE, 0.0) = BLUE
     /// RED.mix(&BLUE, 1.0) = RED
     /// ```
     pub fn mix(&self, ratio: f32, other: &RgbPixel) -> Self {
         let ratio = ratio.clamp(0.0, 1.0);
-        let mix_calc = |pixchan1:u8, pixchan2:u8| (pixchan1 as f32 * ratio) + (pixchan2 as f32) * (1.0 - ratio);
+        let mix_calc = |pixchan1: u8, pixchan2: u8| {
+            (pixchan1 as f32 * ratio) + (pixchan2 as f32) * (1.0 - ratio)
+        };
         RgbPixel(
             mix_calc(self.0, other.0).round() as u8,
             mix_calc(self.1, other.1).round() as u8,
@@ -124,19 +126,19 @@ impl RgbPixel {
 
     /// This function will build a gradient out of the current colour.
     /// by generating a list of said colour with varying luminance - utilising HSL.
-    /// 
+    ///
     /// `shades` determines how many shades get generated. Passing `1` will
     /// return a vector with a single colour containing `0.5` luminance - for example.
-    /// 
+    ///
     /// **Note:** This will *not* include black and white.
     pub fn build_gradient(&self, shades: u16) -> Vec<Self> {
-        let fractional = 1 as f32 / (shades+1) as f32;
+        let fractional = 1 as f32 / (shades + 1) as f32;
         (1..=shades)
             .into_iter()
             .map(|i| {
                 self.to_hsl()
                     // set the luminance to black first
-                    .add_luminance(-2.0) 
+                    .add_luminance(-2.0)
                     .add_luminance(i as f32 * fractional)
                     .to_rgb()
             })
@@ -145,13 +147,13 @@ impl RgbPixel {
 
     /// This function will build a gradient by mixing the current colour with another
     /// using various ratios.
-    /// 
+    ///
     /// `mixes` determines how many mixes get generated. Passing `1` will return
     /// a vector with a single colour that mixes both equally.
-    /// 
+    ///
     /// **Note:** This will *not* include either **pure** colour - only mixes.
     pub fn build_gradient_mix(&self, other: &RgbPixel, mixes: u16) -> Vec<Self> {
-        let fractional = 1 as f32 / (mixes+1) as f32;
+        let fractional = 1 as f32 / (mixes + 1) as f32;
         (1..=mixes)
             .into_iter()
             .map(|i| self.mix(i as f32 * fractional, other))

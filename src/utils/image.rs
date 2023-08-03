@@ -2,7 +2,7 @@ use std::io::Cursor;
 
 use base64::Engine;
 use image::io::Reader as ImageReader;
-use image::{self, DynamicImage, GenericImageView, imageops};
+use image::{self, imageops, DynamicImage, GenericImageView};
 
 use super::ImageFilterResult;
 
