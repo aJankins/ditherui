@@ -117,7 +117,7 @@ mod test {
         Ok(())
     }
 
-    // #[test]
+    #[test]
     fn colour_effects_test() -> ImageFilterResult<()> {
         let image = get_image()?;
 

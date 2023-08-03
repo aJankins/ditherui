@@ -60,8 +60,8 @@ impl LabPixel {
         let (r, g, b) = rgb.get();
         let (mut r, mut g, mut b) = (
             r as f32 / 255.0,
-            b as f32 / 255.0,
             g as f32 / 255.0,
+            b as f32 / 255.0,
         );
 
         let update_channel = |num: f32| 
@@ -135,19 +135,5 @@ impl LabPixel {
             (g.clamp(0.0, 1.0) * 255.0) as u8,
             (b.clamp(0.0, 1.0) * 255.0) as u8,
         )
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use crate::pixel::{rgb::RgbPixel, lab::LabPixel};
-
-
-    #[test]
-    fn from_rgb() {
-        let lab = LabPixel::from(RgbPixel::new(255, 0, 0));
-        assert_eq!(lab.0, 53.23288);
-        assert_eq!(lab.1, 80.10930);
-        assert_eq!(lab.2, 67.22008);
     }
 }

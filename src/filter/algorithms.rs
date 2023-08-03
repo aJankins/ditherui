@@ -1,6 +1,6 @@
 use image::DynamicImage;
 
-use crate::{pixel::rgb::RgbPixel, ImageEffect};
+use crate::{pixel::{rgb::RgbPixel, lch::LchPixel, lab::LabPixel}, ImageEffect};
 
 /// Algorithms for applying filters to an image.
 pub enum Algorithms<'a> {
@@ -63,6 +63,18 @@ fn change_hue(image: DynamicImage, degrees: f32) -> DynamicImage {
     DynamicImage::ImageRgb8(rgb8_image)
 }
 
+fn change_hue_lch(image: DynamicImage, degrees: f32) -> DynamicImage {
+    let mut rgb8_image = image.into_rgb8();
+
+    for pixel in rgb8_image.pixels_mut() {
+        let mut lch = LchPixel::from(RgbPixel::from(&*pixel));
+        lch.add_hue(degrees);
+        (pixel[0], pixel[1], pixel[2]) = lch.as_lab().as_rgb().get();
+    }
+
+    DynamicImage::ImageRgb8(rgb8_image)
+}
+
 // contrast seems like it needs more research
 fn apply_contrast(image: DynamicImage, amount: f32) -> DynamicImage {
     let mut rgb8_image = image.into_rgb8();
@@ -90,6 +102,18 @@ fn apply_brightness(image: DynamicImage, amount: f32) -> DynamicImage {
     DynamicImage::ImageRgb8(rgb8_image)
 }
 
+fn apply_brightness_lch(image: DynamicImage, amount: f32) -> DynamicImage {
+    let mut rgb8_image = image.into_rgb8();
+
+    for pixel in rgb8_image.pixels_mut() {
+        let mut lch = LchPixel::from(RgbPixel::from(&*pixel));
+        lch.add_luma(amount);
+        (pixel[0], pixel[1], pixel[2]) = lch.as_lab().as_rgb().get();
+    }
+
+    DynamicImage::ImageRgb8(rgb8_image)
+}
+
 fn apply_saturation(image: DynamicImage, amount: f32) -> DynamicImage {
     let mut rgb8_image = image.into_rgb8();
 
@@ -97,6 +121,18 @@ fn apply_saturation(image: DynamicImage, amount: f32) -> DynamicImage {
         let mut hsl = RgbPixel::from(&*pixel).to_hsl();
         hsl.add_saturation(amount);
         (pixel[0], pixel[1], pixel[2]) = hsl.as_rgb().get();
+    }
+
+    DynamicImage::ImageRgb8(rgb8_image)
+}
+
+fn apply_saturation_lch(image: DynamicImage, amount: f32) -> DynamicImage {
+    let mut rgb8_image = image.into_rgb8();
+
+    for pixel in rgb8_image.pixels_mut() {
+        let mut lch = LchPixel::from(RgbPixel::from(&*pixel));
+        lch.add_chroma(amount);
+        (pixel[0], pixel[1], pixel[2]) = lch.as_lab().as_rgb().get();
     }
 
     DynamicImage::ImageRgb8(rgb8_image)

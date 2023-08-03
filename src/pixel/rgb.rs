@@ -6,7 +6,7 @@ use super::{hsl::HslPixel, lab::LabPixel};
 
 #[derive(Debug, Clone, Copy)]
 /// Represents a pixel in the RGB colour space. Each value (RGB) ranges between 0 and 255.
-pub struct RgbPixel(u8, u8, u8);
+pub struct RgbPixel(pub u8, pub u8, pub u8);
 
 pub mod colours {
     use super::RgbPixel;
