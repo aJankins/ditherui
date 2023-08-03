@@ -108,7 +108,7 @@ impl RgbPixel {
     /// 
     /// Putting it another way:
     /// 
-    /// ```
+    /// ```ignore
     /// RED.mix(&BLUE, 0.0) = BLUE
     /// RED.mix(&BLUE, 1.0) = RED
     /// ```

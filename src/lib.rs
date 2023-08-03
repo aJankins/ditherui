@@ -72,7 +72,7 @@ impl AdjustableImage for DynamicImage {
 /// provide an easily usable and *clean* way to generate a gradient map from HSL values.
 ///
 /// The following is an example usage of this macro:
-/// ```
+/// ```ignore
 /// let gradient = hsl_gradient_map![
 ///     0.00 => sat: 0.0, lum: 0.0, hue: 0.0,
 ///     0.30 => sat: 0.8, lum: 0.4, hue: 0.0,
@@ -99,12 +99,16 @@ mod test {
         dither::palettes,
         pixel::rgb::RgbPixel,
         prelude::*,
-        utils::{image::{load_image, load_image_from_url_with_max_dim}, ImageFilterResult},
+        utils::{image::load_image_from_url_with_max_dim, ImageFilterResult},
     };
+
+    fn get_image() -> ImageFilterResult<DynamicImage> {
+        load_image_from_url_with_max_dim("https://scied.ucar.edu/sites/default/files/styles/half_width/public/2021-10/cumulus-clouds.jpg.webp?itok=HkQfuWxM", 1080)
+    }
 
     #[test]
     fn dither_test() -> ImageFilterResult<()> {
-        let image = load_image_from_url_with_max_dim("https://scied.ucar.edu/sites/default/files/styles/half_width/public/2021-10/cumulus-clouds.jpg.webp?itok=HkQfuWxM", 1080)?;
+        let image = get_image()?;
 
         mono(&image)?;
         colour_websafe(&image)?; // takes a long time due to large palette
@@ -115,7 +119,7 @@ mod test {
 
     #[test]
     fn colour_effects_test() -> ImageFilterResult<()> {
-        let image = load_image("data/input.png")?;
+        let image = get_image()?;
 
         image
             .clone()
