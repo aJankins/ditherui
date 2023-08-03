@@ -2,7 +2,7 @@ use image::Rgb;
 
 use crate::utils::numops::average;
 
-use super::hsl::HslPixel;
+use super::{hsl::HslPixel, lab::LabPixel};
 
 #[derive(Debug, Clone, Copy)]
 /// Represents a pixel in the RGB colour space. Each value (RGB) ranges between 0 and 255.
@@ -219,6 +219,11 @@ impl RgbPixel {
 
     /// Converts the pixel to an `HslPixel`.
     pub fn to_hsl(self) -> HslPixel {
+        self.into()
+    }
+
+    /// Converts the pixel to an `LabPixel`.
+    pub fn to_lab(self) -> LabPixel {
         self.into()
     }
 }

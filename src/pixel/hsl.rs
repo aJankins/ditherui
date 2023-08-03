@@ -46,9 +46,8 @@ impl From<RgbPixel> for HslPixel {
     }
 }
 
-impl HslPixel {
-    /// Converts an HslPixel into an RgbPixel.
-    pub fn to_rgb(self) -> RgbPixel {
+impl Into<RgbPixel> for HslPixel {
+    fn into(self) -> RgbPixel {
         let chroma = (1.0 - (2.0 * self.2 - 1.0).abs()) * self.1;
         let hue_degree = self.get_normalized_hue() / 60.0;
         let x = chroma * (1.0 - ((hue_degree % 2.0) - 1.0).abs());
@@ -76,12 +75,18 @@ impl HslPixel {
 
         let m = self.2 - (chroma / 2.0);
 
-        (
+        RgbPixel::new(
             ((r1 + m) * 255.0).round() as u8,
             ((g1 + m) * 255.0).round() as u8,
             ((b1 + m) * 255.0).round() as u8,
         )
-            .into()
+    }
+}
+
+impl HslPixel {
+    /// Converts an HslPixel into an RgbPixel.
+    pub fn to_rgb(self) -> RgbPixel {
+        self.into()
     }
 
     /// Adds (rotates) the hue.
