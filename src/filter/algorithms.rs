@@ -1,6 +1,6 @@
 use image::DynamicImage;
 
-use crate::{pixel::{rgb::RgbPixel, lch::LchPixel}, ImageEffect};
+use crate::{pixel::{rgb::RgbPixel, lch::LchPixel, lab::LabPixel}, ImageEffect};
 
 /// Algorithms for applying filters to an image.
 pub enum Algorithms<'a> {
@@ -36,6 +36,7 @@ pub enum Algorithms<'a> {
     /// This ignores luminance or saturation and *only* changes the hue - useful for defining a colour
     /// scheme without losing detail.
     QuantizeHue(&'a [f32]),
+    DEBUG,
 }
 
 impl<'a> ImageEffect<DynamicImage> for Algorithms<'a> {
@@ -47,8 +48,37 @@ impl<'a> ImageEffect<DynamicImage> for Algorithms<'a> {
             Self::Saturate(amount) => apply_saturation(image, *amount),
             Self::GradientMap(gradient) => apply_gradient_map(image, gradient),
             Self::QuantizeHue(hues) => apply_quantize_hue(image, hues),
+            Self::DEBUG => _debug_filter(image),
         }
     }
+}
+
+fn _debug_filter(image: DynamicImage) -> DynamicImage {
+    let _ = image.save("data/original.png");
+    let mut rgb8_image = image.into_rgb8();
+
+    let mut hsl_img = rgb8_image.clone();
+    for pixel in hsl_img.pixels_mut() {
+        let hsl = RgbPixel::from(&*pixel).to_hsl();
+        (pixel[0], pixel[1], pixel[2]) = hsl.as_rgb().get();
+    }
+    let _ = DynamicImage::ImageRgb8(hsl_img).save("data/hsl.png");
+
+    let mut lab_img = rgb8_image.clone();
+    for pixel in lab_img.pixels_mut() {
+        let lab = LabPixel::from(RgbPixel::from(&*pixel));
+        (pixel[0], pixel[1], pixel[2]) = lab.as_rgb().get();
+    }
+    let _ = DynamicImage::ImageRgb8(lab_img).save("data/lab.png");
+
+    let mut lch_img = rgb8_image.clone();
+    for pixel in lch_img.pixels_mut() {
+        let lch = LchPixel::from(RgbPixel::from(&*pixel));
+        (pixel[0], pixel[1], pixel[2]) = lch.as_lab().as_rgb().get();
+    }
+    let _ = DynamicImage::ImageRgb8(lch_img).save("data/lch.png");
+
+    DynamicImage::ImageRgb8(rgb8_image)
 }
 
 fn change_hue(image: DynamicImage, degrees: f32) -> DynamicImage {

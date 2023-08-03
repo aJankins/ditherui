@@ -106,6 +106,18 @@ mod test {
         load_image_from_url_with_max_dim("https://scied.ucar.edu/sites/default/files/styles/half_width/public/2021-10/cumulus-clouds.jpg.webp?itok=HkQfuWxM", 1080)
     }
 
+    #[test]
+    fn _debug() -> ImageFilterResult<()> {
+        let image = get_image()?;
+
+        image
+            .clone()
+            .apply(Filter::DEBUG)
+            .save("data/DEBUG.png")?;
+
+        Ok(())
+    }
+
     // #[test]
     fn dither_test() -> ImageFilterResult<()> {
         let image = get_image()?;
@@ -117,8 +129,8 @@ mod test {
         Ok(())
     }
 
-    #[test]
-    fn colour_effects_test() -> ImageFilterResult<()> {
+    // #[test]
+    fn filter_effects_test() -> ImageFilterResult<()> {
         let image = get_image()?;
 
         image

@@ -1,4 +1,3 @@
-// massive thanks to https://github.com/antimatter15/rgb-lab for providing a good example of an implementation
 use super::rgb::RgbPixel;
 
 /*
@@ -80,9 +79,9 @@ impl LabPixel {
         g = update_channel(g);
         b = update_channel(b);
 
-        let mut x = (r * 0.4124 + g * 0.3576 + b * 0.1805) / 0.95047;
-        let mut y = (r * 0.2126 + g * 0.7152 + b * 0.0722) / 1.00000;
-        let mut z = (r * 0.0193 + g * 0.1192 + b * 0.9505) / 1.08883;
+        let mut x = r * 0.4124564 + g * 0.3575761 + b * 0.1804375;
+        let mut y = r * 0.2126729 + g * 0.7151522 + b * 0.0721750;
+        let mut z = r * 0.0193339 + g * 0.1191920 + b * 0.9503041;
 
         let update_component = |num: f32|
             if num > 0.008856 {
@@ -91,9 +90,9 @@ impl LabPixel {
                 num * 7.787 + 16.0/116.0
             };
 
-            x = update_component(x);
-            y = update_component(y);
-            z = update_component(z);
+        x = update_component(x);
+        y = update_component(y);
+        z = update_component(z);
 
         LabPixel(
             (116.0 * y) - 16.0,
