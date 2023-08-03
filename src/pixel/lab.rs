@@ -1,7 +1,4 @@
 // massive thanks to https://github.com/antimatter15/rgb-lab for providing a good example of an implementation
-
-use num::integer::Roots;
-
 use super::rgb::RgbPixel;
 
 #[derive(Debug, Clone, Copy)]
@@ -16,7 +13,51 @@ impl From<(f32, f32, f32)> for LabPixel {
 
 impl From<RgbPixel> for LabPixel {
     fn from(value: RgbPixel) -> Self {
-        let (r, g, b) = value.get();
+        Self::from_rgb(&value)
+    }
+}
+
+impl Into<RgbPixel> for LabPixel {
+    fn into(self) -> RgbPixel {
+        self.as_rgb()
+    }
+}
+
+impl LabPixel {
+    pub fn get(&self) -> (f32, f32, f32) {
+        (self.0, self.1, self.2)
+    }
+
+    pub fn distance_from(&self, other: &LabPixel) -> f32 {
+        let delta_l = self.0 - other.0;
+        let delta_a = self.1 - other.1;
+        let delta_b = self.2 - other.2;
+
+        let c1 = self.1.powf(2.0) + self.2.powf(2.0);
+        let c2 = other.1.powf(2.0) + other.2.powf(2.0);
+
+        let delta_c = c1 - c2;
+        let delta_h = delta_a.powf(2.0) + delta_b.powf(2.0) + delta_c.powf(2.0);
+        let delta_h = if delta_h < 0.0 { 0.0 } else {delta_h.sqrt()};
+
+        let sc = 1.0 + 0.045 * c1;
+        let sh = 1.0 + 0.015 * c1;
+
+        let delta_l_kl_sl = delta_l / (1.0);
+        let delta_c_kc_sc = delta_c / sc;
+        let delta_h_kh_sh = delta_h / sh;
+
+        let i = delta_l_kl_sl.powf(2.0) + delta_c_kc_sc.powf(2.0) + delta_h_kh_sh.powf(2.0);
+        
+        if i < 0.0 {
+            0.0
+        } else {
+            i.sqrt()
+        }
+    }
+
+    pub fn from_rgb(rgb: &RgbPixel) -> LabPixel {
+        let (r, g, b) = rgb.get();
         let (mut r, mut g, mut b) = (
             r as f32 / 255.0,
             b as f32 / 255.0,
@@ -55,10 +96,8 @@ impl From<RgbPixel> for LabPixel {
             200.0 * (y - z),
         )
     }
-}
 
-impl Into<RgbPixel> for LabPixel {
-    fn into(self) -> RgbPixel {
+    pub fn as_rgb(&self) -> RgbPixel {
         let (l, a, b) = self.get();
 
         let mut y = (l + 16.0) / 116.0;
@@ -96,40 +135,6 @@ impl Into<RgbPixel> for LabPixel {
             (g.clamp(0.0, 1.0) * 255.0) as u8,
             (b.clamp(0.0, 1.0) * 255.0) as u8,
         )
-    }
-}
-
-impl LabPixel {
-    pub fn get(&self) -> (f32, f32, f32) {
-        (self.0, self.1, self.2)
-    }
-
-    pub fn distance_from(&self, other: &LabPixel) -> f32 {
-        let delta_l = self.0 - other.0;
-        let delta_a = self.1 - other.1;
-        let delta_b = self.2 - other.2;
-
-        let c1 = self.1.powf(2.0) + self.2.powf(2.0);
-        let c2 = other.1.powf(2.0) + other.2.powf(2.0);
-
-        let delta_c = c1 - c2;
-        let delta_h = delta_a.powf(2.0) + delta_b.powf(2.0) + delta_c.powf(2.0);
-        let delta_h = if delta_h < 0.0 { 0.0 } else {delta_h.sqrt()};
-
-        let sc = 1.0 + 0.045 * c1;
-        let sh = 1.0 + 0.015 * c1;
-
-        let delta_l_kl_sl = delta_l / (1.0);
-        let delta_c_kc_sc = delta_c / sc;
-        let delta_h_kh_sh = delta_h / sh;
-
-        let i = delta_l_kl_sl.powf(2.0) + delta_c_kc_sc.powf(2.0) + delta_h_kh_sh.powf(2.0);
-        
-        if i < 0.0 {
-            0.0
-        } else {
-            i.sqrt()
-        }
     }
 }
 
