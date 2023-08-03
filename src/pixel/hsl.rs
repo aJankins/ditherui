@@ -23,11 +23,6 @@ impl Into<RgbPixel> for HslPixel {
 }
 
 impl HslPixel {
-    /// Converts an HslPixel into an RgbPixel.
-    pub fn to_rgb(self) -> RgbPixel {
-        self.into()
-    }
-
     /// Adds (rotates) the hue.
     pub fn add_hue(&mut self, hue: f32) -> &mut Self {
         self.0 = self.0 + hue;

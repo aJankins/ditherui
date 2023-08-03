@@ -140,7 +140,7 @@ impl RgbPixel {
                     // set the luminance to black first
                     .add_luminance(-2.0)
                     .add_luminance(i as f32 * fractional)
-                    .to_rgb()
+                    .as_rgb()
             })
             .collect()
     }

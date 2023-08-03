@@ -57,7 +57,7 @@ fn change_hue(image: DynamicImage, degrees: f32) -> DynamicImage {
     for pixel in rgb8_image.pixels_mut() {
         let mut hsl = RgbPixel::from(&*pixel).to_hsl();
         hsl.add_hue(degrees);
-        (pixel[0], pixel[1], pixel[2]) = hsl.to_rgb().get();
+        (pixel[0], pixel[1], pixel[2]) = hsl.as_rgb().get();
     }
 
     DynamicImage::ImageRgb8(rgb8_image)
@@ -84,7 +84,7 @@ fn apply_brightness(image: DynamicImage, amount: f32) -> DynamicImage {
     for pixel in rgb8_image.pixels_mut() {
         let mut hsl = RgbPixel::from(&*pixel).to_hsl();
         hsl.add_luminance(amount);
-        (pixel[0], pixel[1], pixel[2]) = hsl.to_rgb().get();
+        (pixel[0], pixel[1], pixel[2]) = hsl.as_rgb().get();
     }
 
     DynamicImage::ImageRgb8(rgb8_image)
@@ -96,7 +96,7 @@ fn apply_saturation(image: DynamicImage, amount: f32) -> DynamicImage {
     for pixel in rgb8_image.pixels_mut() {
         let mut hsl = RgbPixel::from(&*pixel).to_hsl();
         hsl.add_saturation(amount);
-        (pixel[0], pixel[1], pixel[2]) = hsl.to_rgb().get();
+        (pixel[0], pixel[1], pixel[2]) = hsl.as_rgb().get();
     }
 
     DynamicImage::ImageRgb8(rgb8_image)
@@ -155,7 +155,7 @@ fn apply_quantize_hue(image: DynamicImage, hues: &[f32]) -> DynamicImage {
     for pixel in rgb8_image.pixels_mut() {
         let mut hsl = RgbPixel::from(&*pixel).to_hsl();
         hsl.quantize_hue(hues);
-        (pixel[0], pixel[1], pixel[2]) = hsl.to_rgb().get();
+        (pixel[0], pixel[1], pixel[2]) = hsl.as_rgb().get();
     }
 
     DynamicImage::ImageRgb8(rgb8_image)
