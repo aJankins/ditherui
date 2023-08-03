@@ -1,4 +1,4 @@
-use super::rgb::RgbPixel;
+use super::{rgb::RgbPixel, conversions::{chain_conversions, rgb_to_xyz_d65, xyz_d65_to_xyz_d50, xyz_d50_to_lab, lab_to_xyz_d50, xyz_d50_to_xyz_d65, xyz_d65_to_rgb}};
 
 /*
     WARNING!
@@ -61,83 +61,18 @@ impl LabPixel {
     }
 
     pub fn from_rgb(rgb: &RgbPixel) -> LabPixel {
-        let (r, g, b) = rgb.get();
-        let (mut r, mut g, mut b) = (
-            r as f32 / 255.0,
-            g as f32 / 255.0,
-            b as f32 / 255.0,
-        );
-
-        let update_channel = |num: f32| 
-            if num > 0.04045 {
-                ((num + 0.055) / 1.055).powf(2.4)
-            } else {
-                num / 12.92
-            };
-
-        r = update_channel(r);
-        g = update_channel(g);
-        b = update_channel(b);
-
-        let mut x = r * 0.4124564 + g * 0.3575761 + b * 0.1804375;
-        let mut y = r * 0.2126729 + g * 0.7151522 + b * 0.0721750;
-        let mut z = r * 0.0193339 + g * 0.1191920 + b * 0.9503041;
-
-        let update_component = |num: f32|
-            if num > 0.008856 {
-                num.powf(1.0/3.0)
-            } else {
-                num * 7.787 + 16.0/116.0
-            };
-
-        x = update_component(x);
-        y = update_component(y);
-        z = update_component(z);
-
-        LabPixel(
-            (116.0 * y) - 16.0,
-            500.0 * (x - y),
-            200.0 * (y - z),
-        )
+        chain_conversions(rgb.get(), &[
+            rgb_to_xyz_d65,
+            xyz_d65_to_xyz_d50,
+            xyz_d50_to_lab,
+        ]).into()
     }
 
     pub fn as_rgb(&self) -> RgbPixel {
-        let (l, a, b) = self.get();
-
-        let mut y = (l + 16.0) / 116.0;
-        let mut x = a / 500.0 + y;
-        let mut z = y - b / 200.0;
-
-        let update_component = |num: f32|
-            if num.powf(3.0) > 0.008856 {
-                num.powf(3.0)
-            } else {
-                (num - 16.0/116.0) / 7.787
-            };
-
-        x = update_component(x);
-        y = update_component(y);
-        z = update_component(z);
-
-        let mut r = x *  3.2406 + y * -1.5372 + z * -0.4986;
-        let mut g = x * -0.9689 + y *  1.8758 + z *  0.0415;
-        let mut b = x *  0.0557 + y * -0.2040 + z *  1.0570;
-
-        let update_channel = |num: f32|
-            if num > 0.0031308 {
-                (1.055 * num.powf(1.0/2.4)) - 0.055
-            } else {
-                12.92 * num
-            };
-
-        r = update_channel(r);
-        g = update_channel(g);
-        b = update_channel(b);
-
-        RgbPixel::new(
-            (r.clamp(0.0, 1.0) * 255.0) as u8,
-            (g.clamp(0.0, 1.0) * 255.0) as u8,
-            (b.clamp(0.0, 1.0) * 255.0) as u8,
-        )
+        chain_conversions(self.get(), &[
+            lab_to_xyz_d50,
+            xyz_d50_to_xyz_d65,
+            xyz_d65_to_rgb,
+        ]).into()
     }
 }

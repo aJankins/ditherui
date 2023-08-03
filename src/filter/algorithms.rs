@@ -60,21 +60,21 @@ fn _debug_filter(image: DynamicImage) -> DynamicImage {
     let mut hsl_img = rgb8_image.clone();
     for pixel in hsl_img.pixels_mut() {
         let hsl = RgbPixel::from(&*pixel).to_hsl();
-        (pixel[0], pixel[1], pixel[2]) = hsl.as_rgb().get();
+        (pixel[0], pixel[1], pixel[2]) = hsl.as_rgb().get_u8();
     }
     let _ = DynamicImage::ImageRgb8(hsl_img).save("data/hsl.png");
 
     let mut lab_img = rgb8_image.clone();
     for pixel in lab_img.pixels_mut() {
         let lab = LabPixel::from(RgbPixel::from(&*pixel));
-        (pixel[0], pixel[1], pixel[2]) = lab.as_rgb().get();
+        (pixel[0], pixel[1], pixel[2]) = lab.as_rgb().get_u8();
     }
     let _ = DynamicImage::ImageRgb8(lab_img).save("data/lab.png");
 
     let mut lch_img = rgb8_image.clone();
     for pixel in lch_img.pixels_mut() {
         let lch = LchPixel::from(RgbPixel::from(&*pixel));
-        (pixel[0], pixel[1], pixel[2]) = lch.as_lab().as_rgb().get();
+        (pixel[0], pixel[1], pixel[2]) = lch.as_lab().as_rgb().get_u8();
     }
     let _ = DynamicImage::ImageRgb8(lch_img).save("data/lch.png");
 
@@ -87,7 +87,7 @@ fn change_hue(image: DynamicImage, degrees: f32) -> DynamicImage {
     for pixel in rgb8_image.pixels_mut() {
         let mut hsl = RgbPixel::from(&*pixel).to_hsl();
         hsl.add_hue(degrees);
-        (pixel[0], pixel[1], pixel[2]) = hsl.as_rgb().get();
+        (pixel[0], pixel[1], pixel[2]) = hsl.as_rgb().get_u8();
     }
 
     DynamicImage::ImageRgb8(rgb8_image)
@@ -98,10 +98,14 @@ fn apply_contrast(image: DynamicImage, amount: f32) -> DynamicImage {
 
     for pixel in rgb8_image.pixels_mut() {
         let (r, g, b) = RgbPixel::from(&*pixel).get();
-        let new_r = (((r as i16 - 128) as f32 * amount) + 128.0).clamp(0.0, 255.0) as u8;
-        let new_g = (((g as i16 - 128) as f32 * amount) + 128.0).clamp(0.0, 255.0) as u8;
-        let new_b = (((b as i16 - 128) as f32 * amount) + 128.0).clamp(0.0, 255.0) as u8;
-        (pixel[0], pixel[1], pixel[2]) = (new_r, new_g, new_b);
+        let new_r = (((r - 0.5) * amount) + 0.5).clamp(0.0, 1.0);
+        let new_g = (((g - 0.5) * amount) + 0.5).clamp(0.0, 1.0);
+        let new_b = (((b - 0.5) * amount) + 0.5).clamp(0.0, 1.0);
+        (pixel[0], pixel[1], pixel[2]) = (
+            (new_r * 255.0) as u8,
+            (new_g * 255.0) as u8,
+            (new_b * 255.0) as u8,
+        );
     }
 
     DynamicImage::ImageRgb8(rgb8_image)
@@ -113,7 +117,7 @@ fn apply_brightness(image: DynamicImage, amount: f32) -> DynamicImage {
     for pixel in rgb8_image.pixels_mut() {
         let mut hsl = RgbPixel::from(&*pixel).to_hsl();
         hsl.add_luminance(amount);
-        (pixel[0], pixel[1], pixel[2]) = hsl.as_rgb().get();
+        (pixel[0], pixel[1], pixel[2]) = hsl.as_rgb().get_u8();
     }
 
     DynamicImage::ImageRgb8(rgb8_image)
@@ -125,7 +129,7 @@ fn apply_saturation(image: DynamicImage, amount: f32) -> DynamicImage {
     for pixel in rgb8_image.pixels_mut() {
         let mut hsl = RgbPixel::from(&*pixel).to_hsl();
         hsl.add_saturation(amount);
-        (pixel[0], pixel[1], pixel[2]) = hsl.as_rgb().get();
+        (pixel[0], pixel[1], pixel[2]) = hsl.as_rgb().get_u8();
     }
 
     DynamicImage::ImageRgb8(rgb8_image)
@@ -155,8 +159,8 @@ fn apply_gradient_map(image: DynamicImage, gradient: &[(RgbPixel, f32)]) -> Dyna
                 let c_ratio = 1.0 - (c_dist / (c_dist + p_dist));
                 let p_ratio = 1.0 - (p_dist / (c_dist + p_dist));
 
-                let (c_r, c_g, c_b) = c_rgb.get();
-                let (p_r, p_g, p_b) = p_rgb.get();
+                let (c_r, c_g, c_b) = c_rgb.get_u8();
+                let (p_r, p_g, p_b) = p_rgb.get_u8();
 
                 let (new_r, new_g, new_b) = (
                     (c_ratio * c_r as f32 + p_ratio * p_r as f32),
@@ -170,7 +174,7 @@ fn apply_gradient_map(image: DynamicImage, gradient: &[(RgbPixel, f32)]) -> Dyna
                     new_b.clamp(0.0, 255.0).round() as u8,
                 )
             } else if curr_col.is_some() {
-                (pixel[0], pixel[1], pixel[2]) = curr_col.unwrap().0.get();
+                (pixel[0], pixel[1], pixel[2]) = curr_col.unwrap().0.get_u8();
             }
         }
     }
@@ -184,7 +188,7 @@ fn apply_quantize_hue(image: DynamicImage, hues: &[f32]) -> DynamicImage {
     for pixel in rgb8_image.pixels_mut() {
         let mut hsl = RgbPixel::from(&*pixel).to_hsl();
         hsl.quantize_hue(hues);
-        (pixel[0], pixel[1], pixel[2]) = hsl.as_rgb().get();
+        (pixel[0], pixel[1], pixel[2]) = hsl.as_rgb().get_u8();
     }
 
     DynamicImage::ImageRgb8(rgb8_image)
@@ -203,7 +207,7 @@ fn apply_brightness_lch(image: DynamicImage, amount: f32) -> DynamicImage {
     for pixel in rgb8_image.pixels_mut() {
         let mut lch = LchPixel::from(RgbPixel::from(&*pixel));
         lch.add_luma(amount);
-        (pixel[0], pixel[1], pixel[2]) = lch.as_lab().as_rgb().get();
+        (pixel[0], pixel[1], pixel[2]) = lch.as_lab().as_rgb().get_u8();
     }
 
     DynamicImage::ImageRgb8(rgb8_image)
@@ -215,7 +219,7 @@ fn apply_saturation_lch(image: DynamicImage, amount: f32) -> DynamicImage {
     for pixel in rgb8_image.pixels_mut() {
         let mut lch = LchPixel::from(RgbPixel::from(&*pixel));
         lch.add_chroma(amount);
-        (pixel[0], pixel[1], pixel[2]) = lch.as_lab().as_rgb().get();
+        (pixel[0], pixel[1], pixel[2]) = lch.as_lab().as_rgb().get_u8();
     }
 
     DynamicImage::ImageRgb8(rgb8_image)
@@ -227,7 +231,7 @@ fn change_hue_lch(image: DynamicImage, degrees: f32) -> DynamicImage {
     for pixel in rgb8_image.pixels_mut() {
         let mut lch = LchPixel::from(RgbPixel::from(&*pixel));
         lch.add_hue(degrees);
-        (pixel[0], pixel[1], pixel[2]) = lch.as_lab().as_rgb().get();
+        (pixel[0], pixel[1], pixel[2]) = lch.as_lab().as_rgb().get_u8();
     }
 
     DynamicImage::ImageRgb8(rgb8_image)

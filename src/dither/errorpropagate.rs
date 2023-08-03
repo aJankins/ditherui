@@ -64,9 +64,15 @@ pub fn error_propagate_through_pixels_rgb<const N: usize>(
             let pixel = image.get_pixel_mut(x, y);
             let rgb = RgbPixel::from(&*pixel);
             let quantized = rgb.quantize(palette);
-            (pixel[0], pixel[1], pixel[2]) = quantized.get();
+            (pixel[0], pixel[1], pixel[2]) = quantized.get_u8();
             rgb.get_error(&quantized)
         };
+
+        let error = (
+            (error.0 * 255.0) as i32,
+            (error.1 * 255.0) as i32,
+            (error.2 * 255.0) as i32,
+        );
 
         for (x_off, y_off, portion) in matrix.iter() {
             let (x_err, y_err) = (

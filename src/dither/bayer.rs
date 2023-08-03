@@ -60,16 +60,16 @@ pub fn bayer_dither(image: DynamicImage, dither_size: usize, palette: &[RgbPixel
 
         let rgb = RgbPixel::from(&*pixel);
 
-        let offset = ((255.0 / 3.0)
+        let offset = (1.0 / 3.0)
             * (matrix
                 .get((xs % dither_size, ys % dither_size))
                 .unwrap_or(&0.0)
-                - 0.5)) as i32;
+                - 0.5) as f32;
 
         (pixel[0], pixel[1], pixel[2]) = rgb
             .add_error((offset, offset, offset))
             .quantize(palette)
-            .get();
+            .get_u8();
     }
 
     DynamicImage::ImageRgb8(rgb8_image)

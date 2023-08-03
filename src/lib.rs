@@ -118,7 +118,7 @@ mod test {
         Ok(())
     }
 
-    // #[test]
+    #[test]
     fn dither_test() -> ImageFilterResult<()> {
         let image = get_image()?;
 
@@ -129,7 +129,7 @@ mod test {
         Ok(())
     }
 
-    // #[test]
+    #[test]
     fn filter_effects_test() -> ImageFilterResult<()> {
         let image = get_image()?;
 

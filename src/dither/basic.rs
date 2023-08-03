@@ -26,7 +26,7 @@ pub fn basic_mono_dither(image: DynamicImage) -> DynamicImage {
 }
 
 pub fn basic_colour_dither(image: DynamicImage, palette: &[RgbPixel]) -> DynamicImage {
-    let mut error = (0 as i32, 0 as i32, 0 as i32);
+    let mut error = (0.0, 0.0, 0.0);
     let mut rgb8_image = image.into_rgb8();
 
     for pixel in rgb8_image.pixels_mut() {
@@ -36,7 +36,7 @@ pub fn basic_colour_dither(image: DynamicImage, palette: &[RgbPixel]) -> Dynamic
 
         error = rgb.get_error(&quantized);
 
-        (pixel[0], pixel[1], pixel[2]) = quantized.get()
+        (pixel[0], pixel[1], pixel[2]) = quantized.get_u8()
     }
 
     DynamicImage::ImageRgb8(rgb8_image)

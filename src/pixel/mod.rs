@@ -12,3 +12,5 @@ pub mod lab;
 
 /// LCH pixels. Have 3 components for Luma, Chroma, and Hue.
 pub mod lch;
+
+pub mod conversions;

@@ -1,4 +1,4 @@
-use super::{lab::LabPixel, rgb::RgbPixel};
+use super::{lab::LabPixel, rgb::RgbPixel, conversions::{lab_to_lch, lch_to_lab}};
 
 /*
     WARNING!
@@ -45,25 +45,11 @@ impl LchPixel {
     }
 
     pub fn from_lab(lab: &LabPixel) -> LchPixel {
-        let (l, a, b) = lab.get();
-
-        let arc_calc = b.atan2(a).to_degrees();
-
-        LchPixel(
-            l,
-            (a.powf(2.0) + b.powf(2.0)).sqrt(),
-            if arc_calc >= 0.0 { arc_calc } else { arc_calc + 360.0 },
-        )
+        lab_to_lch(lab.get()).into()
     }
 
     pub fn as_lab(&self) -> LabPixel {
-        let (l, c, h) = self.get();
-
-        LabPixel::from((
-            l,
-            c * h.to_radians().cos(),
-            c * h.to_radians().sin(),
-        ))
+        lch_to_lab(self.get()).into()
     }
 
     pub fn add_luma(&mut self, luma: f32) -> &mut Self {
