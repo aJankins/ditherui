@@ -2,7 +2,15 @@ use super::{rgb::RgbPixel, conversions::{rgb_to_hsl, hsl_to_rgb}};
 
 #[derive(Debug, Clone, Copy)]
 /// Represents a pixel in the HSL colour space. Saturation and luminance are clamped at `0.0` to `1.0` - whereas hue can be any valid `f32` value.
-pub struct HslPixel(f32, f32, f32);
+/// The 3 components of an HSL pixel are as follows:
+/// 
+/// - Hue: Ranges from 0.0 to 360.0.
+/// - Saturation: Ranges from 0.0 to 100.0. (May not be currently true.)
+/// - Lightness: Ranges from 0.0 to 100.0 (May not currently be true.)
+/// 
+/// This is an improvement over RGB, however you may want to use LCH instead whose
+/// components more accurately reflect human vision.
+pub struct HslPixel(pub f32, pub f32, pub f32);
 
 impl From<(f32, f32, f32)> for HslPixel {
     fn from(value: (f32, f32, f32)) -> Self {

@@ -2,7 +2,7 @@ use image::Rgb;
 
 use crate::utils::numops::average;
 
-use super::{hsl::HslPixel, lab::LabPixel, conversions::{rgb_to_hsl, chain_conversions, rgb_to_xyz_d65, xyz_d65_to_xyz_d50}};
+use super::{hsl::HslPixel, lab::LabPixel, conversions::{rgb_to_hsl, chain_conversions, rgb_to_xyz_d65, xyz_d65_to_xyz_d50}, lch::LchPixel};
 
 #[derive(Debug, Clone, Copy)]
 /// Represents a pixel in the RGB colour space. Each value (RGB) ranges between 0 and 255.
@@ -146,7 +146,7 @@ impl RgbPixel {
         (1..=shades)
             .into_iter()
             .map(|i| {
-                self.to_hsl()
+                self.as_hsl()
                     // set the luminance to black first
                     .add_luminance(-2.0)
                     .add_luminance(i as f32 * fractional)
@@ -205,12 +205,17 @@ impl RgbPixel {
     }
 
     /// Converts the pixel to an `HslPixel`.
-    pub fn to_hsl(&self) -> HslPixel {
+    pub fn as_hsl(&self) -> HslPixel {
         HslPixel::from_rgb(self)
     }
 
-    /// Converts the pixel to an `LabPixel`.
-    pub fn to_lab(&self) -> LabPixel {
+    /// Converts the pixel to a `LabPixel`.
+    pub fn as_lab(&self) -> LabPixel {
         LabPixel::from_rgb(self)
+    }
+
+    /// Converts the pixel to a `LchPixel`.
+    pub fn as_lch(&self) -> LchPixel {
+        LchPixel::from_rgb(self)
     }
 }

@@ -1,4 +1,4 @@
-use super::{rgb::RgbPixel, conversions::{chain_conversions, rgb_to_xyz_d65, xyz_d65_to_xyz_d50, xyz_d50_to_lab, lab_to_xyz_d50, xyz_d50_to_xyz_d65, xyz_d65_to_rgb}};
+use super::{rgb::RgbPixel, conversions::{chain_conversions, rgb_to_xyz_d65, xyz_d65_to_xyz_d50, xyz_d50_to_lab, lab_to_xyz_d50, xyz_d50_to_xyz_d65, xyz_d65_to_rgb}, lch::LchPixel};
 
 /*
     WARNING!
@@ -6,7 +6,15 @@ use super::{rgb::RgbPixel, conversions::{chain_conversions, rgb_to_xyz_d65, xyz_
 */
 
 #[derive(Debug, Clone, Copy)]
-pub struct LabPixel(f32, f32, f32);
+/// The 3 components of an LAB pixel are:
+/// 
+/// - L: Ranges from 0.0 to 100.0. Determines the visible luminance of the pixel.
+/// - a: Ranges from -125.0 to 125.0. Represents the greenness to redness of the pixel.
+/// - b: Ranges from -125.0 to 125.0. Represents the blueness to yellowness of the pixel.
+/// 
+/// The nature of this pixel can be a bit finnicky to play with. You may prefer to use
+/// LCH - which replaces `a` and `b` with `Chroma` (saturation) and `Hue`.
+pub struct LabPixel(pub f32, pub f32, pub f32);
 
 impl From<(f32, f32, f32)> for LabPixel {
     fn from(value: (f32, f32, f32)) -> Self {
@@ -74,5 +82,9 @@ impl LabPixel {
             xyz_d50_to_xyz_d65,
             xyz_d65_to_rgb,
         ]).into()
+    }
+
+    pub fn as_lch(&self) -> LchPixel {
+        LchPixel::from_lab(self)
     }
 }
