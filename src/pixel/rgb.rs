@@ -1,6 +1,6 @@
 use image::Rgb;
 
-use super::{hsl::HslPixel, lab::LabPixel, conversions::{rgb_to_hsl, chain_conversions, rgb_to_xyz_d65, xyz_d65_to_xyz_d50}, lch::LchPixel};
+use super::{hsl::HslPixel, lab::LabPixel, conversions::{rgb_to_hsl, chain_conversions, rgb_to_xyz_d65, xyz_d65_to_xyz_d50}, lch::LchPixel, comparisons::rgb_euclidean};
 
 #[derive(Debug, Clone, Copy)]
 /// Represents a pixel in the RGB colour space. Each value (RGB) ranges between 0 and 255.
@@ -96,7 +96,7 @@ impl RgbPixel {
         let mut current_colour = self;
 
         for colour in palette.iter() {
-            let distance = colour.get_difference(self);
+            let distance = colour.distance_from(self);
             if distance < closest_distance {
                 current_colour = colour;
                 closest_distance = distance;
@@ -177,16 +177,10 @@ impl RgbPixel {
         )
     }
 
-    /// Retrieves the difference between it and another `RgbPixel` using the
+    /// Retrieves the distance between it and another `RgbPixel` using the
     /// weighted euclidean method.
-    pub fn get_difference(&self, other: &RgbPixel) -> f32 {
-        let m = if self.0 > 0.5 { (3.0, 4.0, 2.0) } else { (2.0, 4.0, 3.0) };
-
-        let diff_r = m.0 * (self.0 - other.0).powi(2);
-        let diff_g = m.1 * (self.1 - other.1).powi(2);
-        let diff_b = m.2 * (self.2 - other.2).powi(2);
-
-        diff_r + diff_g + diff_b
+    pub fn distance_from(&self, other: &RgbPixel) -> f32 {
+        rgb_euclidean(self.get(), other.get())
     }
 
     /// Retrieves the (r, g, b) channels of the pixel as a tuple.

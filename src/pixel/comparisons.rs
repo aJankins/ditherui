@@ -1,6 +1,16 @@
 use super::conversions::lch_to_lab;
 
-pub fn ciede2000(col_a: (f32, f32, f32), col_b: (f32, f32, f32)) -> f32 {
+pub fn rgb_euclidean(rgb_a: (f32, f32, f32), rgb_b: (f32, f32, f32)) -> f32 {
+    let m = if rgb_a.0 > 0.5 { (3.0, 4.0, 2.0) } else { (2.0, 4.0, 3.0) };
+
+    let diff_r = m.0 * (rgb_a.0 - rgb_b.0).powi(2);
+    let diff_g = m.1 * (rgb_a.1 - rgb_b.1).powi(2);
+    let diff_b = m.2 * (rgb_a.2 - rgb_b.2).powi(2);
+
+    diff_r + diff_g + diff_b
+}
+
+pub fn ciede2000(lch_a: (f32, f32, f32), lch_b: (f32, f32, f32)) -> f32 {
     // set up constants for formula
     // these are usually unity (1)
     let k_l: f32 = 1.0;
@@ -8,14 +18,14 @@ pub fn ciede2000(col_a: (f32, f32, f32), col_b: (f32, f32, f32)) -> f32 {
     let k_h: f32 = 1.0;
 
     // get LAB values - needed for formula
-    let (l_1, a_1, b_1) = lch_to_lab(col_a);
-    let (l_2, a_2, b_2) = lch_to_lab(col_b);
+    let (_, a_1, b_1) = lch_to_lab(lch_a);
+    let (_, a_2, b_2) = lch_to_lab(lch_b);
 
     // set up variables for formula
-    let delta_l_mark = col_b.0 - col_a.0;
+    let delta_l_mark = lch_b.0 - lch_a.0;
 
-    let avg_l = (col_b.0 + col_a.0) / 2.0;
-    let avg_c = (col_b.1 + col_a.1) / 2.0;
+    let avg_l = (lch_b.0 + lch_a.0) / 2.0;
+    let avg_c = (lch_b.1 + lch_a.1) / 2.0;
 
     let c_7_mul = 1.0 - (avg_c.powi(7) / (avg_c.powi(7) + 25_f32.powi(7)).sqrt());
     let a_1_mark = a_1 + (a_1 / 2.0) * c_7_mul;
