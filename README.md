@@ -8,6 +8,17 @@ Feel free to open issues / pull requests / fork if you'd like.
 
 ## Dithering
 
+The **2-bit** dithering is separated purely because it lacks the need of a colour distance function, which makes it faster by default.
+
+For now, the colour distance function used is **weighted euclidean**, which looks like this:
+
+$$
+f(R, G, B) = \begin{cases}
+    \sqrt{2\Delta R^2 + 4\Delta G^2 + 3\Delta B^2} & \overline{R} < 128, \\
+    \sqrt{3\Delta R^2 + 4\Delta G^2 + 2\Delta B^2} & \textrm{otherwise},
+\end{cases}
+$$
+
 Currently supports the following algorithms:
 
 |            **Name** | *2-bit*                                         | *RGB (Web-safe)*                                    | *RGB (8-bit)*                                    |
@@ -28,16 +39,23 @@ Currently supports the following algorithms:
 
 ## Colour
 
+For colour, certain filters such as *brightness, saturation, hue rotation*, are done by first mapping each RGB pixel to HSL or LCH.
+Originally, HSL was used due to the ease of computation - however as LCH is significantly more accurate in representing each of its
+components HSL was soon replaced with LCH.
+
+However, `RGB -> LCH` requires more computation than `RGB -> HSL`. Currently the code requires you change it in order to use the right pixel,
+but it may be worth looking into allowing the user to use HSL instead for maximal speed.
+
 Currently supports the following effects:
 
 |         **Name** | *Image*                                |
 | ---------------: | -------------------------------------- |
-|    brighten +0.2 | ![](./data/colour/brighten+0.2.png)    |
-|    brighten -0.2 | ![](./data/colour/brighten-0.2.png)    |
+|    brighten +0.2 | ![](./data/colour/brighten+10.0.png)    |
+|    brighten -0.2 | ![](./data/colour/brighten-10.0.png)    |
 |     contrast 0.5 | ![](./data/colour/contrast.0.5.png)    |
 |     contrast 1.5 | ![](./data/colour/contrast.1.5.png)    |
 | gradient mapping | ![](./data/colour/gradient-mapped.png) |
 |   rotate hue 180 | ![](./data/colour/rotate-hue-180.png)  |
-|    saturate +0.2 | ![](./data/colour/saturate+0.2.png)    |
-|    saturate -0.2 | ![](./data/colour/saturate-0.2.png)    |
+|    saturate +0.2 | ![](./data/colour/saturate+10.0.png)    |
+|    saturate -0.2 | ![](./data/colour/saturate-10.0.png)    |
 |     quantize hue | ![](./data/colour/quantize-hue.png)    |
