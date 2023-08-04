@@ -1,10 +1,13 @@
 // constants
+
+/// Constants for D50 WHITE.
 const D50_WHITE: [f32; 3] = [
     0.3457 / 0.3585,
     1.00000,
     (1.0 - 0.3457 - 0.3585) / 0.3585,
 ];
 
+/// Constants for D65 WHITE.
 const D65_WHITE: [f32; 3] = [
     0.3127 / 0.3290,
     1.00000,
@@ -13,6 +16,11 @@ const D65_WHITE: [f32; 3] = [
 
 // RGB -> HSL -> RGB
 
+/// Converts RGB to HSL.
+/// 
+/// The expected ranges for RGB are `(0.0~1.0, 0.0~1.0, 0.0~1.0)`
+/// 
+/// The returned HSL values have the following ranges: `(0.0~360.0, 0.0~1.0, 0.0~1.0)`.
 pub fn rgb_to_hsl(rgb: (f32, f32, f32)) -> (f32, f32, f32) {
     let (r, g, b) = rgb;
 
@@ -46,6 +54,11 @@ pub fn rgb_to_hsl(rgb: (f32, f32, f32)) -> (f32, f32, f32) {
     (hue, saturation, lightness)
 }
 
+/// Converts RGB to HSL.
+/// 
+/// The expected ranges for HSL are `(0.0~360.0, 0.0~1.0, 0.0~1.0)`
+/// 
+/// The returned RGB values have the following ranges: `(0.0~1.0, 0.0~1.0, 0.0~1.0)`.
 pub fn hsl_to_rgb(hsl: (f32, f32, f32)) -> (f32, f32, f32) {
     let (mut h, s, l) = hsl;
     let chroma = (1.0 - (2.0 * l - 1.0).abs()) * s;
@@ -91,6 +104,11 @@ pub fn hsl_to_rgb(hsl: (f32, f32, f32)) -> (f32, f32, f32) {
 
 // RGB -> XYZ_D65 -> RGB
 
+/// Converts RGB to XYZ_D65.
+/// 
+/// The expected ranges for RGB are `(0.0~1.0, 0.0~1.0, 0.0~1.0)`
+/// 
+/// XYZ_D65 shouldn't be used as a colour, but as an intermediary between RGB and LAB.
 pub fn rgb_to_xyz_d65(rgb: (f32, f32, f32)) -> (f32, f32, f32) {
     let (r, g, b) = rgb;
 
@@ -112,6 +130,9 @@ pub fn rgb_to_xyz_d65(rgb: (f32, f32, f32)) -> (f32, f32, f32) {
     (x, y, z)
 }
 
+/// Converts XYZ_D65 to RGB.
+/// 
+/// The expected ranges for RGB are `(0.0~1.0, 0.0~1.0, 0.0~1.0)`
 pub fn xyz_d65_to_rgb(xyz: (f32, f32, f32)) -> (f32, f32, f32) {
     let (x, y, z) = xyz;
 
@@ -134,6 +155,10 @@ pub fn xyz_d65_to_rgb(xyz: (f32, f32, f32)) -> (f32, f32, f32) {
 }
 
 // XYZ_D65 -> XYZ_D50 -> XYZ_D65
+
+/// Converts XYZ_D65 to XYZ_D50.
+/// 
+/// Useful as an intermediary for RGB -> LAB, as a shift in white is required.
 pub fn xyz_d65_to_xyz_d50(xyz_d65: (f32, f32, f32)) -> (f32, f32, f32) {
     let (x, y, z) = xyz_d65;
 
@@ -144,6 +169,9 @@ pub fn xyz_d65_to_xyz_d50(xyz_d65: (f32, f32, f32)) -> (f32, f32, f32) {
     )
 }
 
+/// Converts XYZ_D50 to XYZ_D65.
+/// 
+/// Useful as an intermediary for LAB -> RGB, as a shift in white is required.
 pub fn xyz_d50_to_xyz_d65(xyz_d50: (f32, f32, f32)) -> (f32, f32, f32) {
     let (x, y, z) = xyz_d50;
 
@@ -155,6 +183,10 @@ pub fn xyz_d50_to_xyz_d65(xyz_d50: (f32, f32, f32)) -> (f32, f32, f32) {
 }
 
 // XYZ_D50 -> LAB -> XYZ_D50
+
+/// Converts XYZ_D50 to LAB.
+/// 
+/// The returned LAB values have the following ranges: `(0.0~100.0, -125.0~125.0, -125.0~125.0)`
 pub fn xyz_d50_to_lab(xyz_d50: (f32, f32, f32)) -> (f32, f32, f32) {
     const EPSILON: f32 = 216.0/24389.0;
     const K: f32 = 24389.0/27.0;
@@ -183,6 +215,11 @@ pub fn xyz_d50_to_lab(xyz_d50: (f32, f32, f32)) -> (f32, f32, f32) {
     )
 }
 
+/// Converts LAB to XYZ_D50.
+/// 
+/// The expected ranges for LAB are `(0.0~100.0, -125.0~125.0, -125.0~125.0)`
+/// 
+/// XYZ_D50 shouldn't be used as a colour, but as an intermediary between LAB and RGB.
 pub fn lab_to_xyz_d50(lab: (f32, f32, f32)) -> (f32, f32, f32) {
     const EPSILON3: f32 = 24.0/116.0;
     const K: f32 = 24389.0/27.0;
@@ -209,6 +246,11 @@ pub fn lab_to_xyz_d50(lab: (f32, f32, f32)) -> (f32, f32, f32) {
 
 // LAB -> LCH -> LAB
 
+/// Converts LAB to LCH.
+/// 
+/// The expected ranges for LAB are `(0.0~100.0, -125.0~125.0, -125.0~125.0)`
+/// 
+/// The returned LCH values have the following ranges: `(0.0~100.0, 0.0~150.0, 0.0~360.0)`
 pub fn lab_to_lch(lab: (f32, f32, f32)) -> (f32, f32, f32) {
     let (l, a, b) = lab;
     const EPSILON: f32 = 0.02;
@@ -226,6 +268,11 @@ pub fn lab_to_lch(lab: (f32, f32, f32)) -> (f32, f32, f32) {
     )
 }
 
+/// Converts LCH to LAB.
+/// 
+/// The expected ranges for LCH are `(0.0~100.0, 0.0~150.0, 0.0~360.0)`
+/// 
+/// The returned LAB values have the following ranges: `(0.0~100.0, -125.0~125.0, -125.0~125.0)`
 pub fn lch_to_lab(lch: (f32, f32, f32)) -> (f32, f32, f32) {
     let (l,mut c, mut h) = lch;
     c = c.max(0.0);
@@ -243,6 +290,17 @@ pub fn lch_to_lab(lch: (f32, f32, f32)) -> (f32, f32, f32) {
 
 // utils
 
+/// Allows conversions to be changed. This makes it more ergonomic to do some more complex conversions - such as RGB to LCH.
+/// 
+/// As an example, to go from RGB to LAB:
+/// 
+/// ```ignore
+/// chain_converstions((1.0, 0.0, 0.0), &[
+///     rgb_to_xyz_d65,
+///     xyz_d65_to_xyz_d50,
+///     xyz_d50_to_lab
+/// ]);
+/// ```
 pub fn chain_conversions(input: (f32, f32, f32), conversions: &[fn((f32, f32, f32)) -> (f32, f32, f32)]) -> (f32, f32, f32) {
     let mut result = input;
     for func in conversions.iter() {

@@ -1,5 +1,8 @@
 use super::conversions::lch_to_lab;
 
+/// Calculates the distance between two RGB colours using the euclidean distance function.
+/// 
+/// Also includes weight to more accurately calculate the distance.
 pub fn rgb_euclidean(rgb_a: (f32, f32, f32), rgb_b: (f32, f32, f32)) -> f32 {
     let m = if rgb_a.0 > 0.5 { (3.0, 4.0, 2.0) } else { (2.0, 4.0, 3.0) };
 
@@ -10,6 +13,10 @@ pub fn rgb_euclidean(rgb_a: (f32, f32, f32), rgb_b: (f32, f32, f32)) -> f32 {
     diff_r + diff_g + diff_b
 }
 
+/// Calculates the distance between two LCH colours using CIEDE2000.
+/// 
+/// Not confirmed to be fully functional yet - however this algorithm is 
+/// proven to be the best, albeit significantly slower due to more computations.
 pub fn ciede2000(lch_a: (f32, f32, f32), lch_b: (f32, f32, f32)) -> f32 {
     // set up constants for formula
     // these are usually unity (1)
