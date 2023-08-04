@@ -8,6 +8,8 @@ Feel free to open issues / pull requests / fork if you'd like.
 
 ## Dithering
 
+### Methodology
+
 The **2-bit** dithering is separated purely because it lacks the need of a colour distance function, which makes it faster by default.
 
 For now, the colour distance function used is **weighted euclidean**, which looks like this:
@@ -19,7 +21,15 @@ f(R, G, B) = \begin{cases}
 \end{cases}
 $$
 
-Currently supports the following algorithms:
+This library *does* have an implementation of `CIEDE2000`, which is known for being accurate - however its complexity causes a *significant* slowdown in finding the correct colour from the palette.
+
+Since this function needs to run $N \times P$ times, where $N$ is the number of pixels and $P$ is the number of colours in the palette, the **weighted euclidean** function was deemed as good enough.
+
+Of course, the code can be optimized to try and gain some speed, but currently the focus is on *functionality* and *usability*, so it will be looked into later.
+
+### Algorithms
+
+Currently supports the following dithering algorithms:
 
 |            **Name** | *2-bit*                                         | *RGB (Web-safe)*                                    | *RGB (8-bit)*                                    |
 | ------------------: | :---------------------------------------------- | :-------------------------------------------------- | :----------------------------------------------- |
@@ -37,11 +47,15 @@ Currently supports the following algorithms:
 |           Bayer 8x8 | ![](./data/dither/bayer-8x8-mono.png)           | ![](./data/dither/bayer-8x8-web-safe.png)           | ![](./data/dither/bayer-8x8-8-bit.png)           |
 |         Bayer 16x16 | ![](./data/dither/bayer-16x16-mono.png)         | ![](./data/dither/bayer-16x16-web-safe.png)         | ![](./data/dither/bayer-16x16-8-bit.png)         |
 
-## Colour
+## Filters
+
+### Methodology
 
 For colour, certain filters such as *brightness, saturation, hue rotation*, are done by first mapping each RGB pixel to HSL or LCH.
 Originally, HSL was used due to the ease of computation - however as LCH is significantly more accurate in representing each of its
 components HSL was soon replaced with LCH.
+
+### Algorithms
 
 However, `RGB -> LCH` requires more computation than `RGB -> HSL`. Currently the code requires you change it in order to use the right pixel,
 but it may be worth looking into allowing the user to use HSL instead for maximal speed.
@@ -59,3 +73,11 @@ Currently supports the following effects:
 |    saturate +0.2 | ![](./data/colour/saturate+10.0.png)    |
 |    saturate -0.2 | ![](./data/colour/saturate-10.0.png)    |
 |     quantize hue | ![](./data/colour/quantize-hue.png)    |
+
+## Colours
+
+A bulk of the above work also included a look into color spaces, since some perform better than others - albeit with more complexity.
+As a result, this library also defines `Pixel` structs for RGB, HSL, LAB, LCH, and Mono - in addition to conversions between them.
+
+For a look into the raw conversion logic, check out [`conversions.rs`](./src/pixel/conversions.rs) - the structs themselves utilise these
+functions to facilitate conversion. As for comparison logic - used for calculating distance between two colors, see [`comparisons.rs`](./src/pixel/comparisons.rs).

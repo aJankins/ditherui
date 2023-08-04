@@ -1,5 +1,7 @@
 // constants
 
+use num::complex::ComplexFloat;
+
 /// Constants for D50 WHITE.
 const D50_WHITE: [f32; 3] = [
     0.3457 / 0.3585,
@@ -286,6 +288,102 @@ pub fn lch_to_lab(lch: (f32, f32, f32)) -> (f32, f32, f32) {
         c * (h * std::f32::consts::PI / 180.0).cos(),
         c * (h * std::f32::consts::PI / 180.0).sin(),
     )
+}
+
+// XYZ_D65 -> OKLAB -> XYZ_D65
+
+/// Converts XYZ_D65 to OKLAB.
+/// 
+/// The expected ranges for OKLAB are `(0.0~1.0, -0.4~0.4, -0.4~0.4)`
+pub fn xyz_d65_to_oklab(xyz_d65: (f32, f32, f32)) -> (f32, f32, f32) {
+    let (x, y, z) = xyz_d65;
+
+    let lms = (
+        x * 0.819022443216431900 + y * 0.36190625628012210 + z * -0.12887378261216414,
+        x * 0.032983667198027100 + y * 0.92928684689655460 + z *  0.03614466816999844,
+        x * 0.048177199566046255 + y * 0.26423952494422764 + z *  0.63354782581369370,
+    );
+
+    let (l, m, s) = (
+        lms.0.cbrt(),
+        lms.1.cbrt(),
+        lms.2.cbrt(),
+    );
+
+    (
+        l * 0.2104542553 + m *  0.7936177850 + s * -0.0040720468,
+        l * 1.9779984951 + m * -2.4285922050 + s *  0.4505937099,
+        l * 0.0259040371 + m *  0.7827717662 + s * -0.8086757660,
+    )
+}
+
+/// Converts OKLAB to XYZ_D65
+/// 
+/// The expected ranges for OKLAB are `(0.0~1.0, -0.4~0.4, -0.4~0.4)`
+pub fn oklab_to_xyz_d65(oklab: (f32, f32, f32)) -> (f32, f32, f32) {
+    let (l, a, b) = oklab;
+
+    let lms = (
+        l * 0.99999999845051981432 + a *  0.396337792173767856780 + b *  0.215803758060758803390,
+        l * 1.00000000888176077670 + a * -0.105561342323656349400 + b * -0.063854174771705903402,
+        l * 1.00000005467241091770 + a * -0.089484182094965759684 + b * -1.291485537864091739900,
+    );
+
+    let (l, m, s) = (
+        lms.0.powi(3),
+        lms.1.powi(3),
+        lms.2.powi(3),
+    );
+
+    (
+        l *  1.22687987337415570 + m * -0.5578149965554813 + s *  0.28139105017721583,
+        l * -0.04057576262431372 + m *  1.1122868293970594 + s * -0.07171106666151701,
+        l * -0.07637294974672142 + m * -0.4214933239627914 + s *  1.58692402442724180,
+    )
+}
+
+// OKLAB -> OKLCH -> OKLAB 
+
+/// Converts OKLAB to OKLCH
+/// 
+/// The expected ranges for OKLAB are `(0.0~1.0, -0.4~0.4, -0.4~0.4)`
+/// 
+/// OKLCH has the following ranges: `(0.0~1.0, 0.0~0.4, 0.0~360.0)`.
+pub fn oklab_to_oklch(oklab: (f32, f32, f32)) -> (f32, f32, f32) {
+    let (l, a, b) = oklab;
+    const EPSILON: f32 = 0.0002;
+
+    let hue = if a.abs() < EPSILON && b.abs() < EPSILON {
+        f32::NAN
+    } else {
+        b.atan2(a) * 180.0 / std::f32::consts::PI
+    };
+
+    (
+        l,
+        (a.powi(2) + b.powi(2)).sqrt(),
+        ((hue % 360.0) + 360.0) % 360.0,
+    )
+}
+
+/// Converts OKLCH to OKLAB
+/// 
+/// The expected ranges for OKLCH are `(0.0~1.0, 0.0~0.4, 0.0~360.0)`
+/// 
+/// OKLAB has the following ranges: `(0.0~1.0, -0.4~0.4, -0.4~0.4)`.
+pub fn oklch_to_oklab(oklch: (f32, f32, f32)) -> (f32, f32, f32) {
+    let (l, c, h) = oklch;
+
+    let (a, b) = if h.is_nan() {
+        (0.0, 0.0)
+    } else {
+        (
+            c * (h * std::f32::consts::PI / 180.0).cos(),
+            c * (h * std::f32::consts::PI / 180.0).sin(),
+        )
+    };
+
+    (l, a, b)
 }
 
 // utils

@@ -1,10 +1,5 @@
 use super::{rgb::RgbPixel, conversions::{chain_conversions, rgb_to_xyz_d65, xyz_d65_to_xyz_d50, xyz_d50_to_lab, lab_to_xyz_d50, xyz_d50_to_xyz_d65, xyz_d65_to_rgb}, lch::LchPixel};
 
-/*
-    WARNING!
-    This may not be 100% accurate. Converting an image from RGB to LAB and back results in some errors.
-*/
-
 #[derive(Debug, Clone, Copy)]
 /// The 3 components of an LAB pixel are:
 /// 

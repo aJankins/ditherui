@@ -1,6 +1,6 @@
 use image::Rgb;
 
-use super::{hsl::HslPixel, lab::LabPixel, conversions::{rgb_to_hsl, chain_conversions, rgb_to_xyz_d65, xyz_d65_to_xyz_d50}, lch::LchPixel, comparisons::rgb_euclidean};
+use super::{hsl::HslPixel, lab::LabPixel, conversions::{rgb_to_hsl, chain_conversions, rgb_to_xyz_d65, xyz_d65_to_xyz_d50}, lch::LchPixel, comparisons::rgb_euclidean, oklab::OklabPixel, oklch::OklchPixel};
 
 #[derive(Debug, Clone, Copy)]
 /// Represents a pixel in the RGB colour space. Each value (RGB) ranges between 0 and 255.
@@ -209,5 +209,13 @@ impl RgbPixel {
     /// Converts the pixel to a `LchPixel`.
     pub fn as_lch(&self) -> LchPixel {
         LchPixel::from_rgb(self)
+    }
+
+    pub fn as_oklab(&self) -> OklabPixel {
+        OklabPixel::from_rgb(self)
+    }
+
+    pub fn as_oklch(&self) -> OklchPixel {
+        OklchPixel::from_rgb(self)
     }
 }

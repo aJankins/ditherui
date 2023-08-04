@@ -13,6 +13,10 @@ pub mod lab;
 /// LCH pixels. Have 3 components for Luma, Chroma, and Hue.
 pub mod lch;
 
+pub mod oklab;
+
+pub mod oklch;
+
 /// The raw conversion algorithms between multiple colour schemes. 
 /// 
 /// Implementation is inspired by `color.js` - especially the [spaces](https://github.com/LeaVerou/color.js/tree/main/src/spaces)

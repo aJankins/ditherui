@@ -1,18 +1,11 @@
-use num::Zero;
-
 use super::{lab::LabPixel, rgb::RgbPixel, conversions::{lab_to_lch, lch_to_lab}, comparisons::ciede2000};
-
-/*
-    WARNING!
-    This may not be 100% accurate. Converting an image from RGB to LCH and back results in some errors.
-*/
 
 #[derive(Debug, Clone, Copy)]
 /// The 3 components of an LCH pixel are as follows:
 /// 
 /// - Lightness: Ranges from 0.0 to 100.0. Determines the visible luminance of the pixel.
 /// - Chroma: Ranges from 0.0 to 150.0. Effectively determines the *saturation* of the pixel.
-/// - Hue: Can be any float, but normally ranges between 0.0 and 360.0. Determines the... **hue** of the pixel.
+/// - Hue: Ranges from 0.0 to 360.0.
 pub struct LchPixel(pub f32, pub f32, pub f32);
 
 pub mod colours {
