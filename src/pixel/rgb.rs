@@ -1,7 +1,5 @@
 use image::Rgb;
 
-use crate::utils::numops::average;
-
 use super::{hsl::HslPixel, lab::LabPixel, conversions::{rgb_to_hsl, chain_conversions, rgb_to_xyz_d65, xyz_d65_to_xyz_d50}, lch::LchPixel};
 
 #[derive(Debug, Clone, Copy)]

@@ -27,3 +27,5 @@ pub mod lch;
 /// 
 /// Instead, you could just use the `.as_lch()` method on an `RgbPixel` to do this for you.
 pub mod conversions;
+
+pub mod comparisons;

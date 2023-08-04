@@ -1,4 +1,6 @@
-use super::{lab::LabPixel, rgb::RgbPixel, conversions::{lab_to_lch, lch_to_lab}};
+use num::Zero;
+
+use super::{lab::LabPixel, rgb::RgbPixel, conversions::{lab_to_lch, lch_to_lab}, comparisons::ciede2000};
 
 /*
     WARNING!
@@ -12,6 +14,14 @@ use super::{lab::LabPixel, rgb::RgbPixel, conversions::{lab_to_lch, lch_to_lab}}
 /// - Chroma: Ranges from 0.0 to 150.0. Effectively determines the *saturation* of the pixel.
 /// - Hue: Can be any float, but normally ranges between 0.0 and 360.0. Determines the... **hue** of the pixel.
 pub struct LchPixel(pub f32, pub f32, pub f32);
+
+pub mod colours {
+    use super::LchPixel;
+
+    // 1-bit
+    pub static BLACK: LchPixel = LchPixel(0.0, 0.0, 0.0);
+    pub static WHITE: LchPixel = LchPixel(100.0, 0.0, 0.0);
+}
 
 impl From<(f32, f32, f32)> for LchPixel {
     fn from(value: (f32, f32, f32)) -> Self {
@@ -82,8 +92,24 @@ impl LchPixel {
         self
     }
 
+    /// Utilizes CIEDE2000 to allow calculating colour differences with LCH
     pub fn distance_from(&self, other: &LchPixel) -> f32 {
-        todo!("implement distance function CIE94 - use https://en.wikipedia.org/wiki/Color_difference#CIELAB_%CE%94E* as reference.");
+        ciede2000(self.get(), other.get())
+    }
+
+    pub fn quantize(&self, palette: &[LchPixel]) -> LchPixel {
+        let mut closest_distance = f32::MAX;
+        let mut current_colour = self;
+
+        for colour in palette.iter() {
+            let distance = colour.distance_from(self);
+            if distance < closest_distance {
+                current_colour = colour;
+                closest_distance = distance;
+            };
+        }
+
+        current_colour.get().into()
     }
 
     pub fn from_lab(lab: &LabPixel) -> LchPixel {
