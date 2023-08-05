@@ -27,7 +27,6 @@
 //! just for better code ergonomics.
 
 use image::DynamicImage;
-use palette::Srgb;
 
 /// Contains multiple algorithms for dithering an image - both in 1-bit and RGB variants.
 pub mod dither;
@@ -50,6 +49,9 @@ pub mod prelude {
     pub use crate::filter::algorithms::Algorithms as Filter;
     pub use crate::AdjustableImage;
     pub use crate::ImageEffect;
+
+    pub use crate::colour::colours::srgb as SrgbColour;
+    pub use crate::colour::gradient::IntoGradient;
 }
 
 /// Defines an effect that can be applied onto an image.
