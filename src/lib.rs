@@ -123,7 +123,8 @@ mod test {
         let image = get_image()?;
 
         let palette = [
-            RGB::RED.build_gradient_mix(&RGB::YELLOW, 10)
+            RGB::BLUE.build_gradient_using_oklch(5),
+            RGB::GOLD.build_gradient_using_oklch(20),
         ].concat();
 
         mono(&image)?;

@@ -21,12 +21,12 @@ impl OklchPixel {
     }
 
     pub fn add_luma(&mut self, luma: f32) -> &mut Self {
-        self.0 = (self.0 + luma).clamp(0.0, 100.0);
+        self.0 = (self.0 + luma).clamp(0.0, 1.0);
         self
     }
 
     pub fn add_chroma(&mut self, chroma: f32) -> &mut Self {
-        self.1 = (self.1 + chroma).clamp(0.0, 132.0);
+        self.1 = (self.1 + chroma).clamp(0.0, 0.4);
         self
     }
 
@@ -77,7 +77,7 @@ impl OklchPixel {
     }
 
     pub fn from_rgb(rgb: &RgbPixel) -> OklchPixel {
-        rgb.as_oklch()
+        rgb.as_oklab().as_oklch()
     }
 
     pub fn as_oklab(&self) -> OklabPixel {

@@ -3,7 +3,7 @@ use image::Rgb;
 use super::{hsl::HslPixel, lab::LabPixel, conversions::{rgb_to_hsl, chain_conversions, rgb_to_xyz_d65, xyz_d65_to_xyz_d50}, lch::LchPixel, comparisons::rgb_weighted_euclidean, oklab::OklabPixel, oklch::OklchPixel};
 
 #[derive(Debug, Clone, Copy)]
-/// Represents a pixel in the RGB colour space. Each value (RGB) ranges between 0 and 255.
+/// Represents a pixel in the RGB colour space. Each value (RGB) ranges between 0.0 and 1.0.
 pub struct RgbPixel(pub f32, pub f32, pub f32);
 
 pub mod colours {
@@ -11,28 +11,28 @@ pub mod colours {
 
     // 1-bit
     pub static BLACK: RgbPixel = RgbPixel(0.0, 0.0, 0.0);
-    pub static WHITE: RgbPixel = RgbPixel(255.0, 255.0, 255.0);
+    pub static WHITE: RgbPixel = RgbPixel(1.0, 1.0, 1.0);
 
     // primary colours
-    pub static RED: RgbPixel = RgbPixel(255.0, 0.0, 0.0);
-    pub static GREEN: RgbPixel = RgbPixel(0.0, 255.0, 0.0);
-    pub static BLUE: RgbPixel = RgbPixel(0.0, 0.0, 255.0);
+    pub static RED: RgbPixel = RgbPixel(1.0, 0.0, 0.0);
+    pub static GREEN: RgbPixel = RgbPixel(0.0, 1.0, 0.0);
+    pub static BLUE: RgbPixel = RgbPixel(0.0, 0.0, 1.0);
 
     // secondary colours
-    pub static YELLOW: RgbPixel = RgbPixel(255.0, 255.0, 0.0);
-    pub static PURPLE: RgbPixel = RgbPixel(255.0, 0.0, 255.0);
-    pub static CYAN: RgbPixel = RgbPixel(0.0, 255.0, 255.0);
+    pub static YELLOW: RgbPixel = RgbPixel(1.0, 1.0, 0.0);
+    pub static PURPLE: RgbPixel = RgbPixel(1.0, 0.0, 1.0);
+    pub static CYAN: RgbPixel = RgbPixel(0.0, 1.0, 1.0);
 
     // other
-    pub static PINK: RgbPixel = RgbPixel(255.0, 150.0, 200.0);
-    pub static MAGENTA: RgbPixel = RgbPixel(255.0, 40.0, 200.0);
-    pub static ROSE: RgbPixel = RgbPixel(255.0, 0.0, 150.0);
+    pub static PINK: RgbPixel = RgbPixel(1.0, 0.6, 0.8);
+    pub static MAGENTA: RgbPixel = RgbPixel(1.0, 0.15, 0.8);
+    pub static ROSE: RgbPixel = RgbPixel(1.0, 0.0, 0.59);
 
-    pub static GOLD: RgbPixel = RgbPixel(255.0, 200.0, 40.0);
-    pub static ORANGE: RgbPixel = RgbPixel(255.0, 100.0, 0.0);
-    pub static RUST: RgbPixel = RgbPixel(180.0, 50.0, 0.0);
+    pub static GOLD: RgbPixel = RgbPixel(1.0, 0.8, 0.16);
+    pub static ORANGE: RgbPixel = RgbPixel(1.0, 0.4, 0.0);
+    pub static RUST: RgbPixel = RgbPixel(0.7, 0.2, 0.0);
 
-    pub static AQUAMARINE: RgbPixel = RgbPixel(0.0, 255.0, 150.0);
+    pub static AQUAMARINE: RgbPixel = RgbPixel(0.0, 1.0, 0.6);
 }
 
 impl From<(u8, u8, u8)> for RgbPixel {
@@ -81,6 +81,27 @@ impl From<&Rgb<u8>> for RgbPixel {
 }
 
 impl RgbPixel {
+    /// Retrieves the (r, g, b) channels of the pixel as a tuple.
+    pub fn get(&self) -> (f32, f32, f32) {
+        (self.0, self.1, self.2)
+    }
+
+    pub fn get_u8(&self) -> (u8, u8, u8) {
+        (
+            (self.0 * 255.0).round() as u8,
+            (self.1 * 255.0).round() as u8,
+            (self.2 * 255.0).round() as u8,
+        )
+    }
+
+    pub fn clamp(&self) -> RgbPixel {
+        (
+            self.0.clamp(0.0, 1.0),
+            self.1.clamp(0.0, 1.0),
+            self.2.clamp(0.0, 1.0),
+        ).into()
+    }
+
     /// Adds an error to each of the channels.
     pub fn add_error(self, error: (f32, f32, f32)) -> RgbPixel {
         RgbPixel(
@@ -132,31 +153,37 @@ impl RgbPixel {
         )
     }
 
-    pub fn mix_oklch(&self, ratio: f32, other: &RgbPixel) -> Self {
-        let ratio = ratio.clamp(0.0, 1.0);
-        let mix_calc = |pixchan1: f32, pixchan2: f32| {
-            (pixchan1 * ratio) + pixchan2 * (1.0 - ratio)
-        };
-
-        let oklch_1 = self.as_oklch();
-        let oklch_2 = other.as_oklch();
-
-        RgbPixel(
-            mix_calc(oklch_1.0, oklch_2.0),
-            mix_calc(oklch_1.1, oklch_2.1),
-            mix_calc(oklch_1.2, oklch_2.2),
-        )
-    }
-
-    /// This function will build a gradient out of the current colour.
-    /// by generating a list of said colour with varying luminance - utilising HSL.
+    /// This function will generate a list of colours with the same hue but
+    /// varying brightness - by using the HSL colour space.
     ///
     /// `shades` determines how many shades get generated. Passing `1` will
     /// return a vector with a single colour containing `0.5` luminance - for example.
     ///
     /// **Note:** This will *not* include black and white.
-    pub fn build_gradient(&self, shades: u16) -> Vec<Self> {
-        let fractional = 1 as f32 / (shades + 1) as f32;
+    pub fn build_gradient_using_hsl(&self, shades: u16) -> Vec<Self> {
+        let fractional = 1.0 / (shades + 1) as f32;
+        (1..=shades)
+            .into_iter()
+            .map(|i| {
+                self.as_hsl()
+                    // set the luminance to black first
+                    .add_luminance(-2.0)
+                    .add_luminance(i as f32 * fractional)
+                    .as_rgb()
+                    .clamp()
+            })
+            .collect()
+    }
+
+    /// This function will generate a list of colours with the same hue but
+    /// varying brightness - by using the OKLCH colour space.
+    ///
+    /// `shades` determines how many shades get generated. Passing `1` will
+    /// return a vector with a single colour containing `0.5` luminance - for example.
+    ///
+    /// **Note:** This will *not* include black and white.
+    pub fn build_gradient_using_oklch(&self, shades: u16) -> Vec<Self> {
+        let fractional = 1.0 / (shades + 1) as f32;
         (1..=shades)
             .into_iter()
             .map(|i| {
@@ -165,6 +192,7 @@ impl RgbPixel {
                     .add_luma(-2.0)
                     .add_luma(i as f32 * fractional)
                     .as_rgb()
+                    .clamp()
             })
             .collect()
     }
@@ -199,19 +227,6 @@ impl RgbPixel {
         rgb_weighted_euclidean(self.get(), other.get())
     }
 
-    /// Retrieves the (r, g, b) channels of the pixel as a tuple.
-    pub fn get(&self) -> (f32, f32, f32) {
-        (self.0, self.1, self.2)
-    }
-
-    pub fn get_u8(&self) -> (u8, u8, u8) {
-        (
-            (self.0 * 255.0).round() as u8,
-            (self.1 * 255.0).round() as u8,
-            (self.2 * 255.0).round() as u8,
-        )
-    }
-
     /// Converts the pixel to an `HslPixel`.
     pub fn as_hsl(&self) -> HslPixel {
         HslPixel::from_rgb(self)
@@ -233,5 +248,75 @@ impl RgbPixel {
 
     pub fn as_oklch(&self) -> OklchPixel {
         OklchPixel::from_rgb(self)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use std::time::Instant;
+
+    use super::RgbPixel;
+
+    const ITERATIONS: usize = 10_000;
+    const TIME_SUFFIX: &'static str = "µs";
+    const RGB_PIXEL: RgbPixel = RgbPixel(0.0, 0.0, 0.0);
+
+    #[test]
+    fn benchmarks() {
+        benchmark_hsl();
+        benchmark_lab();
+        benchmark_lch();
+        benchmark_oklab();
+        benchmark_oklch();
+    }
+
+    fn benchmark_hsl() {
+        let now = Instant::now();
+
+        for _ in 1..ITERATIONS {
+            RGB_PIXEL.as_hsl();
+        }
+
+        println!("HSL  : {}{}", now.elapsed().as_micros(), TIME_SUFFIX);
+    }
+
+    fn benchmark_lab() {
+        let now = Instant::now();
+
+        for _ in 1..ITERATIONS {
+            RGB_PIXEL.as_lab();
+        }
+
+        println!("LAB  : {}{}", now.elapsed().as_micros(), TIME_SUFFIX);
+    }
+
+    fn benchmark_lch() {
+        let now = Instant::now();
+
+        for _ in 1..ITERATIONS {
+            RGB_PIXEL.as_lch();
+        }
+
+        println!("LCH  : {}{}", now.elapsed().as_micros(), TIME_SUFFIX);
+    }
+
+    fn benchmark_oklab() {
+        let now = Instant::now();
+
+        for _ in 1..ITERATIONS {
+            RGB_PIXEL.as_oklab();
+        }
+
+        println!("OKLAB: {}{}", now.elapsed().as_micros(), TIME_SUFFIX);
+    }
+
+    fn benchmark_oklch() {
+        let now = Instant::now();
+
+        for _ in 1..ITERATIONS {
+            RGB_PIXEL.as_oklch();
+        }
+
+        println!("OKLCH: {}{}", now.elapsed().as_micros(), TIME_SUFFIX);
     }
 }
