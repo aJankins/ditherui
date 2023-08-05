@@ -97,6 +97,7 @@ macro_rules! hsl_gradient_map {
 }
 // type GradientMap<T> = &[(Color<T>, f32)] where T: Srgb;
 
+#[macro_export]
 macro_rules! gradient_map {
     [$($threshold:expr => $color:expr),*] => {
         &[
