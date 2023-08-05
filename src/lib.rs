@@ -98,13 +98,25 @@ macro_rules! hsl_gradient_map {
 // type GradientMap<T> = &[(Color<T>, f32)] where T: Srgb;
 
 #[macro_export]
+/// Helps construct a gradient map from HSL values.
+///
+/// You *could* construct the map yourself, however the purpose of this is mostly to
+/// provide an easily usable and *clean* way to generate a gradient map from HSL values.
+///
+/// The following is an example usage of this macro:
+/// ```ignore
+/// let hsl: GradientMap<Hsl<Srgb>> = gradient_map!(
+///     0.00 => Hsl::new(0.0, 0.0, 0.0),
+///     1.00 => Hsl::new(0.0, 0.0, 1.0),
+/// );
+/// ```
 macro_rules! gradient_map {
     [$($threshold:expr => $color:expr),*] => {
         &[
             $(
                 ($color, $threshold)
             ),*
-        ];
+        ]
     };
 }
 
