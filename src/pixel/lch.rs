@@ -1,4 +1,4 @@
-use super::{lab::LabPixel, rgb::RgbPixel, conversions::{lab_to_lch, lch_to_lab}, comparisons::ciede2000};
+use super::{lab::LabPixel, rgb::RgbPixel, conversions::{lab_to_lch, lch_to_lab}, comparisons::{ciede2000, cie94}};
 
 #[derive(Debug, Clone, Copy)]
 /// The 3 components of an LCH pixel are as follows:
@@ -85,9 +85,9 @@ impl LchPixel {
         self
     }
 
-    /// Utilizes CIEDE2000 to allow calculating colour differences with LCH
+    /// Utilizes CIE94 to allow calculating colour differences with LCH
     pub fn distance_from(&self, other: &LchPixel) -> f32 {
-        ciede2000(self.get(), other.get())
+        cie94(self.get(), other.get())
     }
 
     pub fn quantize(&self, palette: &[LchPixel]) -> LchPixel {

@@ -1,4 +1,4 @@
-use super::{oklab::OklabPixel, conversions::{oklab_to_oklch, oklch_to_oklab}, rgb::RgbPixel};
+use super::{oklab::OklabPixel, conversions::{oklab_to_oklch, oklch_to_oklab}, rgb::RgbPixel, comparisons::cie94};
 
 #[derive(Debug, Clone, Copy)]
 /// The 3 components of an OKLCH pixel are as follows:
@@ -51,6 +51,25 @@ impl OklchPixel {
 
         self.2 = current_hue;
         self
+    }
+
+    pub fn distance_from(&self, other: &OklchPixel) -> f32 {
+        cie94(self.get(), other.get())
+    }
+
+    pub fn quantize(&self, palette: &[OklchPixel]) -> OklchPixel {
+        let mut closest_distance = f32::MAX;
+        let mut current_colour = self;
+
+        for colour in palette.iter() {
+            let distance = colour.distance_from(self);
+            if distance < closest_distance {
+                current_colour = colour;
+                closest_distance = distance;
+            };
+        }
+
+        current_colour.get().into()
     }
 
     pub fn from_oklab(oklab: &OklabPixel) -> OklchPixel {

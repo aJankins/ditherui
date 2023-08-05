@@ -1,4 +1,4 @@
-use super::{rgb::RgbPixel, conversions::{chain_conversions, rgb_to_xyz_d65, xyz_d65_to_xyz_d50, xyz_d50_to_lab, lab_to_xyz_d50, xyz_d50_to_xyz_d65, xyz_d65_to_rgb}, lch::LchPixel};
+use super::{rgb::RgbPixel, conversions::{chain_conversions, rgb_to_xyz_d65, xyz_d65_to_xyz_d50, xyz_d50_to_lab, lab_to_xyz_d50, xyz_d50_to_xyz_d65, xyz_d65_to_rgb}, lch::LchPixel, comparisons::cie76};
 
 #[derive(Debug, Clone, Copy)]
 /// The 3 components of an LAB pixel are:
@@ -36,31 +36,22 @@ impl LabPixel {
     }
 
     pub fn distance_from(&self, other: &LabPixel) -> f32 {
-        let delta_l = self.0 - other.0;
-        let delta_a = self.1 - other.1;
-        let delta_b = self.2 - other.2;
+        cie76(self.get(), other.get())
+    }
 
-        let c1 = self.1.powf(2.0) + self.2.powf(2.0);
-        let c2 = other.1.powf(2.0) + other.2.powf(2.0);
+    pub fn quantize(&self, palette: &[LabPixel]) -> LabPixel {
+        let mut closest_distance = f32::MAX;
+        let mut current_colour = self;
 
-        let delta_c = c1 - c2;
-        let delta_h = delta_a.powf(2.0) + delta_b.powf(2.0) + delta_c.powf(2.0);
-        let delta_h = if delta_h < 0.0 { 0.0 } else {delta_h.sqrt()};
-
-        let sc = 1.0 + 0.045 * c1;
-        let sh = 1.0 + 0.015 * c1;
-
-        let delta_l_kl_sl = delta_l / (1.0);
-        let delta_c_kc_sc = delta_c / sc;
-        let delta_h_kh_sh = delta_h / sh;
-
-        let i = delta_l_kl_sl.powf(2.0) + delta_c_kc_sc.powf(2.0) + delta_h_kh_sh.powf(2.0);
-        
-        if i < 0.0 {
-            0.0
-        } else {
-            i.sqrt()
+        for colour in palette.iter() {
+            let distance = colour.distance_from(self);
+            if distance < closest_distance {
+                current_colour = colour;
+                closest_distance = distance;
+            };
         }
+
+        current_colour.get().into()
     }
 
     pub fn from_rgb(rgb: &RgbPixel) -> LabPixel {

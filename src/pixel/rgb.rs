@@ -1,6 +1,6 @@
 use image::Rgb;
 
-use super::{hsl::HslPixel, lab::LabPixel, conversions::{rgb_to_hsl, chain_conversions, rgb_to_xyz_d65, xyz_d65_to_xyz_d50}, lch::LchPixel, comparisons::rgb_euclidean, oklab::OklabPixel, oklch::OklchPixel};
+use super::{hsl::HslPixel, lab::LabPixel, conversions::{rgb_to_hsl, chain_conversions, rgb_to_xyz_d65, xyz_d65_to_xyz_d50}, lch::LchPixel, comparisons::rgb_weighted_euclidean, oklab::OklabPixel, oklch::OklchPixel};
 
 #[derive(Debug, Clone, Copy)]
 /// Represents a pixel in the RGB colour space. Each value (RGB) ranges between 0 and 255.
@@ -180,7 +180,7 @@ impl RgbPixel {
     /// Retrieves the distance between it and another `RgbPixel` using the
     /// weighted euclidean method.
     pub fn distance_from(&self, other: &RgbPixel) -> f32 {
-        rgb_euclidean(self.get(), other.get())
+        rgb_weighted_euclidean(self.get(), other.get())
     }
 
     /// Retrieves the (r, g, b) channels of the pixel as a tuple.
