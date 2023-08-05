@@ -40,6 +40,8 @@ pub mod pixel;
 /// Utilities. Mostly just for the test cases - will probably be removed.
 pub mod utils;
 
+pub mod colour;
+
 /// Prelude for including the useful elements from the library - including traits and algorithms.
 pub mod prelude {
     pub use crate::dither::algorithms::Algorithms as Dither;
@@ -94,6 +96,7 @@ macro_rules! hsl_gradient_map {
 #[cfg(test)]
 mod test {
     use image::{DynamicImage, ImageResult};
+    use palette::{rgb::Rgb, Srgb};
 
     use crate::{
         dither::palettes,
@@ -103,10 +106,10 @@ mod test {
     };
 
     fn get_image() -> ImageFilterResult<DynamicImage> {
-        load_image_from_url_with_max_dim("https://i.natgeofe.com/n/c9107b46-78b1-4394-988d-53927646c72b/1095_3x2.jpg", 1080)
+        load_image_from_url_with_max_dim("https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Double-alaskan-rainbow.jpg/1200px-Double-alaskan-rainbow.jpg", 1080)
     }
 
-    // #[test]
+    #[test]
     fn _debug() -> ImageFilterResult<()> {
         let image = get_image()?;
 
@@ -118,7 +121,7 @@ mod test {
         Ok(())
     }
 
-    #[test]
+    // #[test]
     fn dither_test() -> ImageFilterResult<()> {
         let image = get_image()?;
 
@@ -145,20 +148,20 @@ mod test {
             .save("data/colour/rotate-hue-180.png")?;
         image
             .clone()
-            .apply(Filter::Brighten( 0.1))
-            .save("data/colour/brighten+0.1.png")?;
+            .apply(Filter::Brighten( 0.2))
+            .save("data/colour/brighten+0.2.png")?;
         image
             .clone()
-            .apply(Filter::Brighten(-0.1))
-            .save("data/colour/brighten-0.1.png")?;
+            .apply(Filter::Brighten(-0.2))
+            .save("data/colour/brighten-0.2.png")?;
         image
             .clone()
-            .apply(Filter::Saturate(0.05))
-            .save("data/colour/saturate+0.05.png")?;
+            .apply(Filter::Saturate( 0.2))
+            .save("data/colour/saturate+0.2.png")?;
         image
             .clone()
-            .apply(Filter::Saturate(-0.05))
-            .save("data/colour/saturate-0.05.png")?;
+            .apply(Filter::Saturate(-0.2))
+            .save("data/colour/saturate-0.2.png")?;
         image
             .clone()
             .apply(Filter::Contrast(0.5))
@@ -169,9 +172,9 @@ mod test {
             .save("data/colour/contrast.1.5.png")?;
 
         let gradient_map = [
-            ("0000FF".into(), 0.50),
-            ("FF0000".into(), 0.75),
-            ("00FF00".into(), 1.00),
+            (Srgb::new(0.0, 0.0, 1.0), 0.00),
+            (Srgb::new(1.0, 0.0, 0.0), 0.50),
+            (Srgb::new(0.0, 1.0, 0.0), 1.00),
         ];
 
         image
