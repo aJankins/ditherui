@@ -77,12 +77,8 @@ fn apply_gradient_map(image: DynamicImage, gradient: &[(RgbPixel, f32)]) -> Dyna
     let mut sorted = Vec::from(gradient.clone());
     sorted.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
 
-    let mut max_l = f32::MIN;
-
     for pixel in rgb8_image.pixels_mut() {
-        let (mut l, _, _) = RgbPixel::from(&*pixel).as_lch().get();
-
-        l = l / 100.0;
+        let (l, _, _) = RgbPixel::from(&*pixel).as_oklch().get();
 
         let index = sorted.iter().position(|(_, threshold)| l < *threshold);
         if let Some(index) = index {
@@ -126,28 +122,21 @@ fn apply_quantize_hue(image: DynamicImage, hues: &[f32]) -> DynamicImage {
     let mut rgb8_image = image.into_rgb8();
 
     for pixel in rgb8_image.pixels_mut() {
-        let mut lch = RgbPixel::from(&*pixel).as_lch();
-        lch.quantize_hue(hues);
-        (pixel[0], pixel[1], pixel[2]) = lch.as_rgb().get_u8();
+        let mut oklch = RgbPixel::from(&*pixel).as_oklch();
+        oklch.quantize_hue(hues);
+        (pixel[0], pixel[1], pixel[2]) = oklch.as_rgb().get_u8();
     }
 
     DynamicImage::ImageRgb8(rgb8_image)
 }
 
-/* Unused / Buggy */
-
-/* LCH
-    These methods modify the brightness, saturation, and hue using LCH.
-    However they also cause a slight error in the image. For example,
-    one image becomes slightly more red.
- */
 fn apply_brightness(image: DynamicImage, amount: f32) -> DynamicImage {
     let mut rgb8_image = image.into_rgb8();
 
     for pixel in rgb8_image.pixels_mut() {
-        let mut lch = LchPixel::from(RgbPixel::from(&*pixel));
-        lch.add_luma(amount);
-        (pixel[0], pixel[1], pixel[2]) = lch.as_lab().as_rgb().get_u8();
+        let mut oklch = RgbPixel::from(&*pixel).as_oklch();
+        oklch.add_luma(amount);
+        (pixel[0], pixel[1], pixel[2]) = oklch.as_rgb().get_u8();
     }
 
     DynamicImage::ImageRgb8(rgb8_image)
@@ -157,9 +146,9 @@ fn apply_saturation(image: DynamicImage, amount: f32) -> DynamicImage {
     let mut rgb8_image = image.into_rgb8();
 
     for pixel in rgb8_image.pixels_mut() {
-        let mut lch = LchPixel::from(RgbPixel::from(&*pixel));
-        lch.add_chroma(amount);
-        (pixel[0], pixel[1], pixel[2]) = lch.as_lab().as_rgb().get_u8();
+        let mut oklch = RgbPixel::from(&*pixel).as_oklch();
+        oklch.add_chroma(amount);
+        (pixel[0], pixel[1], pixel[2]) = oklch.as_rgb().get_u8();
     }
 
     DynamicImage::ImageRgb8(rgb8_image)
@@ -169,9 +158,9 @@ fn change_hue(image: DynamicImage, degrees: f32) -> DynamicImage {
     let mut rgb8_image = image.into_rgb8();
 
     for pixel in rgb8_image.pixels_mut() {
-        let mut lch = LchPixel::from(RgbPixel::from(&*pixel));
-        lch.add_hue(degrees);
-        (pixel[0], pixel[1], pixel[2]) = lch.as_lab().as_rgb().get_u8();
+        let mut oklch = RgbPixel::from(&*pixel).as_oklch();
+        oklch.add_hue(degrees);
+        (pixel[0], pixel[1], pixel[2]) = oklch.as_rgb().get_u8();
     }
 
     DynamicImage::ImageRgb8(rgb8_image)

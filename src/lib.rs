@@ -145,20 +145,20 @@ mod test {
             .save("data/colour/rotate-hue-180.png")?;
         image
             .clone()
-            .apply(Filter::Brighten(10.0))
-            .save("data/colour/brighten+10.0.png")?;
+            .apply(Filter::Brighten( 0.1))
+            .save("data/colour/brighten+0.1.png")?;
         image
             .clone()
-            .apply(Filter::Brighten(-10.0))
-            .save("data/colour/brighten-10.0.png")?;
+            .apply(Filter::Brighten(-0.1))
+            .save("data/colour/brighten-0.1.png")?;
         image
             .clone()
-            .apply(Filter::Saturate(10.0))
-            .save("data/colour/saturate+10.0.png")?;
+            .apply(Filter::Saturate(0.05))
+            .save("data/colour/saturate+0.05.png")?;
         image
             .clone()
-            .apply(Filter::Saturate(-10.0))
-            .save("data/colour/saturate-10.0.png")?;
+            .apply(Filter::Saturate(-0.05))
+            .save("data/colour/saturate-0.05.png")?;
         image
             .clone()
             .apply(Filter::Contrast(0.5))
