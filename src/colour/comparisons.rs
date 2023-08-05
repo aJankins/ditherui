@@ -1,4 +1,4 @@
-use super::{conversions::lch_to_lab, rgb};
+use super::{conversions::lch_to_lab};
 
 type Colour = (f32, f32, f32);
 
@@ -137,7 +137,7 @@ pub fn ciede2000(lch_a: Colour, lch_b: Colour) -> f32 {
 mod test {
     use std::time::Instant;
 
-    use crate::pixel::comparisons::{cie76, cie94, ciede2000};
+    use crate::colour::comparisons::{cie76, cie94, ciede2000};
 
     use super::rgb_weighted_euclidean;
 

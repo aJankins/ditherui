@@ -1,6 +1,7 @@
 use image::DynamicImage;
+use palette::Srgb;
 
-use crate::{pixel::rgb::RgbPixel, ImageEffect};
+use crate::ImageEffect;
 
 use super::{
     basic::{basic_colour_dither, basic_mono_dither},
@@ -53,28 +54,28 @@ pub enum Algorithms<'a> {
     /// The basic error propagation method.
     ///
     /// Results in the worst quality output, but included for curiosity's sake
-    Basic(&'a [RgbPixel]),
+    Basic(&'a [Srgb]),
     /// Floyd Steinberg dithering.
-    FloydSteinberg(&'a [RgbPixel]),
+    FloydSteinberg(&'a [Srgb]),
     /// Jarvis Judice Ninke dithering.
-    JarvisJudiceNinke(&'a [RgbPixel]),
+    JarvisJudiceNinke(&'a [Srgb]),
     /// Stucki dithering.
-    Stucki(&'a [RgbPixel]),
+    Stucki(&'a [Srgb]),
     /// Atkinson dithering.
-    Atkinson(&'a [RgbPixel]),
+    Atkinson(&'a [Srgb]),
     /// Burkes dithering.
-    Burkes(&'a [RgbPixel]),
+    Burkes(&'a [Srgb]),
     /// Sierra dithering.
-    Sierra(&'a [RgbPixel]),
+    Sierra(&'a [Srgb]),
     /// Sierra two-row dithering.
-    SierraTwoRow(&'a [RgbPixel]),
+    SierraTwoRow(&'a [Srgb]),
     /// Sierra lite dithering.
-    SierraLite(&'a [RgbPixel]),
+    SierraLite(&'a [Srgb]),
     /// Bayer / Ordered dithering.
     ///
     /// Accepts the matrix size. 1 results in no dithering, and 4+ is recommended.
     /// Isn't as accurate as the error propagation methods, but can be stylistically preferred.
-    Bayer(usize, &'a [RgbPixel]),
+    Bayer(usize, &'a [Srgb]),
 }
 
 impl ImageEffect<DynamicImage> for MonoAlgorithms {

@@ -1,17 +1,18 @@
 use once_cell::sync::Lazy;
+use palette::Srgb;
 
-use crate::pixel::rgb::RgbPixel;
+use crate::colour::utils::hexcode_to_srgb;
 
-pub static EIGHT_BIT: Lazy<Vec<RgbPixel>> = Lazy::new(|| {
+pub static EIGHT_BIT: Lazy<Vec<Srgb>> = Lazy::new(|| {
     vec![
         "000000", "FF0000", "00FF00", "0000FF", "FFFF00", "00FFFF", "FF00FF", "FFFFFF",
     ]
     .into_iter()
-    .map(|color| color.into())
+    .map(|color| hexcode_to_srgb(color))
     .collect()
 });
 
-pub static WEB_SAFE: Lazy<Vec<RgbPixel>> = Lazy::new(|| {
+pub static WEB_SAFE: Lazy<Vec<Srgb>> = Lazy::new(|| {
     vec![
         "000000", "000033", "000066", "000099", "0000cc", "0000ff", "003300", "003333", "003366",
         "003399", "0033cc", "0033ff", "006600", "006633", "006666", "006699", "0066cc", "0066ff",
@@ -39,6 +40,6 @@ pub static WEB_SAFE: Lazy<Vec<RgbPixel>> = Lazy::new(|| {
         "ffcc99", "ffcccc", "ffccff", "ffff00", "ffff33", "ffff66", "ffff99", "ffffcc", "ffffff",
     ]
     .into_iter()
-    .map(|color| color.into())
+    .map(|color| hexcode_to_srgb(color))
     .collect()
 });

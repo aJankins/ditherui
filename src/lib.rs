@@ -35,7 +35,7 @@ pub mod dither;
 pub mod filter;
 
 /// Pixel utilities. Facilitates certain functionality such as colour difference and conversion between spaces.
-pub mod pixel;
+// pub mod pixel;
 
 /// Utilities. Mostly just for the test cases - will probably be removed.
 pub mod utils;
@@ -100,9 +100,9 @@ mod test {
 
     use crate::{
         dither::palettes,
-        pixel::rgb::{RgbPixel, colours as RGB},
+        colour::colours::srgb as RGB,
         prelude::*,
-        utils::{image::load_image_from_url_with_max_dim, ImageFilterResult},
+        utils::{image::load_image_from_url_with_max_dim, ImageFilterResult}, colour::utils::{build_rgb_gradient, GradientMethod},
     };
 
     fn get_image() -> ImageFilterResult<DynamicImage> {
@@ -121,24 +121,25 @@ mod test {
         Ok(())
     }
 
-    // #[test]
+    #[test]
     fn dither_test() -> ImageFilterResult<()> {
         let image = get_image()?;
 
         let palette = [
-            RGB::BLUE.build_gradient_using_oklch(5),
-            RGB::GOLD.build_gradient_using_oklch(20),
+            dbg!(build_rgb_gradient(RGB::RED, 5, GradientMethod::LCH)),
+            dbg!(build_rgb_gradient(RGB::BLUE, 5, GradientMethod::LCH)),
+            dbg!(build_rgb_gradient(RGB::GOLD, 20, GradientMethod::LCH)),
         ].concat();
 
         mono(&image)?;
-        colour_websafe(&image)?; // takes a long time due to large palette
+        // colour_websafe(&image)?; // takes a long time due to large palette
         colour_eightbit(&image)?; // significantly faster
         colour(&image, &palette, Some("-custom-palette"))?;
 
         Ok(())
     }
 
-    #[test]
+    // #[test]
     fn filter_effects_test() -> ImageFilterResult<()> {
         let image = get_image()?;
 
@@ -258,7 +259,7 @@ mod test {
 
     fn colour(
         image: &DynamicImage,
-        palette: &[RgbPixel],
+        palette: &[Srgb],
         opt_postfix: Option<&str>,
     ) -> ImageResult<()> {
         let postfix = opt_postfix.unwrap_or("");

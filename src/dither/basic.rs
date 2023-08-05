@@ -1,43 +1,34 @@
 use image::DynamicImage;
+use palette::Srgb;
 
-use crate::pixel::{
-    mono::{MonoPixel, ONE_BIT},
-    rgb::RgbPixel,
-};
+use crate::colour::utils::{ONE_BIT, grayscale_rgb, quantize_rgb, compute_rgb_error};
 
-pub fn basic_mono_dither(image: DynamicImage) -> DynamicImage {
-    let mut error = 0;
-    let mut rgb8_image = image.into_rgb8();
+pub fn basic_dither(image: DynamicImage, is_mono: bool, palette: &[Srgb]) -> DynamicImage {
+    let mut error = (0.0, 0.0, 0.0);
+    let mut image = image.into_rgb8();
 
-    for pixel in rgb8_image.pixels_mut() {
-        let mono = MonoPixel::from(&*pixel).add_error(error);
-        let quantized = mono.quantize(ONE_BIT);
+    for (_, _, pixel) in image.enumerate_pixels_mut() {
+        let mut color = Srgb::from(pixel.0).into_format::<f32>();
+        color.red = color.red + error.0;
+        color.blue = color.blue + error.1;
+        color.green = color.green + error.2;
+        if is_mono {
+            color = grayscale_rgb(color);
+        }
+        let quantized = quantize_rgb(color, palette);
 
-        error = mono.get_error(&quantized);
+        error = compute_rgb_error(color, quantized);
 
-        let quantized_val = quantized.get();
-
-        pixel[0] = quantized_val;
-        pixel[1] = quantized_val;
-        pixel[2] = quantized_val;
+        pixel.0 = quantized.into_format().into();
     }
 
-    DynamicImage::ImageRgb8(rgb8_image)
+    DynamicImage::ImageRgb8(image)
 }
 
-pub fn basic_colour_dither(image: DynamicImage, palette: &[RgbPixel]) -> DynamicImage {
-    let mut error = (0.0, 0.0, 0.0);
-    let mut rgb8_image = image.into_rgb8();
+pub fn basic_mono_dither(image: DynamicImage) -> DynamicImage {
+    basic_dither(image, true, ONE_BIT)
+}
 
-    for pixel in rgb8_image.pixels_mut() {
-        let rgb = RgbPixel::from(&*pixel).add_error((error.0, error.1, error.2));
-
-        let quantized = rgb.quantize(palette);
-
-        error = rgb.get_error(&quantized);
-
-        (pixel[0], pixel[1], pixel[2]) = quantized.get_u8()
-    }
-
-    DynamicImage::ImageRgb8(rgb8_image)
+pub fn basic_colour_dither(image: DynamicImage, palette: &[Srgb]) -> DynamicImage {
+    basic_dither(image, false, palette)
 }

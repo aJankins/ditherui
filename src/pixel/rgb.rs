@@ -7,32 +7,34 @@ use super::{hsl::HslPixel, lab::LabPixel, conversions::{rgb_to_hsl, chain_conver
 pub struct RgbPixel(pub f32, pub f32, pub f32);
 
 pub mod colours {
+    use palette::Srgb;
+
     use super::RgbPixel;
 
     // 1-bit
-    pub static BLACK: RgbPixel = RgbPixel(0.0, 0.0, 0.0);
-    pub static WHITE: RgbPixel = RgbPixel(1.0, 1.0, 1.0);
+    pub static BLACK: Srgb = Srgb::new(0.0, 0.0, 0.0);
+    pub static WHITE: Srgb = Srgb::new(1.0, 1.0, 1.0);
 
     // primary colours
-    pub static RED: RgbPixel = RgbPixel(1.0, 0.0, 0.0);
-    pub static GREEN: RgbPixel = RgbPixel(0.0, 1.0, 0.0);
-    pub static BLUE: RgbPixel = RgbPixel(0.0, 0.0, 1.0);
+    pub static RED: Srgb = Srgb::new(1.0, 0.0, 0.0);
+    pub static GREEN: Srgb = Srgb::new(0.0, 1.0, 0.0);
+    pub static BLUE: Srgb = Srgb::new(0.0, 0.0, 1.0);
 
     // secondary colours
-    pub static YELLOW: RgbPixel = RgbPixel(1.0, 1.0, 0.0);
-    pub static PURPLE: RgbPixel = RgbPixel(1.0, 0.0, 1.0);
-    pub static CYAN: RgbPixel = RgbPixel(0.0, 1.0, 1.0);
+    pub static YELLOW: Srgb = Srgb::new(1.0, 1.0, 0.0);
+    pub static PURPLE: Srgb = Srgb::new(1.0, 0.0, 1.0);
+    pub static CYAN: Srgb = Srgb::new(0.0, 1.0, 1.0);
 
     // other
-    pub static PINK: RgbPixel = RgbPixel(1.0, 0.6, 0.8);
-    pub static MAGENTA: RgbPixel = RgbPixel(1.0, 0.15, 0.8);
-    pub static ROSE: RgbPixel = RgbPixel(1.0, 0.0, 0.59);
+    pub static PINK: Srgb = Srgb::new(1.0, 0.6, 0.8);
+    pub static MAGENTA: Srgb = Srgb::new(1.0, 0.15, 0.8);
+    pub static ROSE: Srgb = Srgb::new(1.0, 0.0, 0.59);
 
-    pub static GOLD: RgbPixel = RgbPixel(1.0, 0.8, 0.16);
-    pub static ORANGE: RgbPixel = RgbPixel(1.0, 0.4, 0.0);
-    pub static RUST: RgbPixel = RgbPixel(0.7, 0.2, 0.0);
+    pub static GOLD: Srgb = Srgb::new(1.0, 0.8, 0.16);
+    pub static ORANGE: Srgb = Srgb::new(1.0, 0.4, 0.0);
+    pub static RUST: Srgb = Srgb::new(0.7, 0.2, 0.0);
 
-    pub static AQUAMARINE: RgbPixel = RgbPixel(0.0, 1.0, 0.6);
+    pub static AQUAMARINE: Srgb = Srgb::new(0.0, 1.0, 0.6);
 }
 
 impl From<(u8, u8, u8)> for RgbPixel {

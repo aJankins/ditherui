@@ -1,11 +1,9 @@
 use image::{ImageBuffer, Rgb};
+use palette::Srgb;
 
 use crate::{
-    pixel::{
-        mono::{MonoPixel, ONE_BIT},
-        rgb::RgbPixel,
-    },
     utils::numops::map_to_2d,
+    colour::utils::{quantize_rgb, ONE_BIT, compute_rgb_error, grayscale_rgb},
 };
 
 pub fn error_propagate_through_pixels<const N: usize>(
@@ -17,15 +15,21 @@ pub fn error_propagate_through_pixels<const N: usize>(
 
     for i in xdim as u64..(xdim * ydim) as u64 {
         let (x, y) = map_to_2d(i, xdim);
+
         let error = {
             let pixel = image.get_pixel_mut(x, y);
-            let mono = MonoPixel::from(&*pixel);
-            let quantized = mono.quantize(ONE_BIT);
-            pixel[0] = quantized.get();
-            pixel[1] = quantized.get();
-            pixel[2] = quantized.get();
-            mono.get_error(&quantized)
+            let srgb = Srgb::from(pixel.0).into_format::<f32>();
+            let srgb = grayscale_rgb(srgb);
+            let quantized = quantize_rgb(srgb, ONE_BIT);
+            pixel.0 = quantized.into_format().into();
+            compute_rgb_error(srgb, quantized)
         };
+
+        let error = (
+            (error.0 * 255.0) as i32,
+            (error.1 * 255.0) as i32,
+            (error.2 * 255.0) as i32,
+        );
 
         for (x_off, y_off, portion) in matrix.iter() {
             let (x_err, y_err) = (
@@ -39,12 +43,11 @@ pub fn error_propagate_through_pixels<const N: usize>(
             };
 
             if let Some(pixel) = pixel {
-                pixel[0] = (pixel[0] as i32 + (error * *portion as i32) / total_portions as i32)
-                    .clamp(0, 255) as u8;
-                pixel[1] = (pixel[1] as i32 + (error * *portion as i32) / total_portions as i32)
-                    .clamp(0, 255) as u8;
-                pixel[2] = (pixel[2] as i32 + (error * *portion as i32) / total_portions as i32)
-                    .clamp(0, 255) as u8;
+                pixel.0 = [
+                    (pixel[0] as i32 + (error.0 * *portion as i32) / total_portions as i32).clamp(0, 255) as u8,
+                    (pixel[1] as i32 + (error.1 * *portion as i32) / total_portions as i32).clamp(0, 255) as u8,
+                    (pixel[2] as i32 + (error.2 * *portion as i32) / total_portions as i32).clamp(0, 255) as u8,
+                ];
             }
         }
     }
@@ -54,7 +57,7 @@ pub fn error_propagate_through_pixels_rgb<const N: usize>(
     image: &mut ImageBuffer<Rgb<u8>, Vec<u8>>,
     matrix: [(i8, i8, u8); N],
     total_portions: u16,
-    palette: &[RgbPixel],
+    palette: &[Srgb],
 ) {
     let (xdim, ydim) = image.dimensions();
 
@@ -62,10 +65,10 @@ pub fn error_propagate_through_pixels_rgb<const N: usize>(
         let (x, y) = map_to_2d(i, xdim);
         let error = {
             let pixel = image.get_pixel_mut(x, y);
-            let rgb = RgbPixel::from(&*pixel);
-            let quantized = rgb.quantize(palette);
-            (pixel[0], pixel[1], pixel[2]) = quantized.get_u8();
-            rgb.get_error(&quantized)
+            let rgb = Srgb::from(pixel.0).into_format::<f32>();
+            let quantized = quantize_rgb(rgb, palette);
+            pixel.0 = quantized.into_format().into();
+            compute_rgb_error(rgb, quantized)
         };
 
         let error = (
@@ -109,7 +112,7 @@ macro_rules! error_prop_fn {
 
 macro_rules! error_prop_rgb_fn {
     ($fn_name:ident, $matrix:expr, $portion_amnt:expr) => {
-        pub fn $fn_name(image: DynamicImage, palette: &[RgbPixel]) -> DynamicImage {
+        pub fn $fn_name(image: DynamicImage, palette: &[Srgb]) -> DynamicImage {
             let mut rgb8_image = image.into_rgb8();
             error_propagate_through_pixels_rgb(&mut rgb8_image, $matrix, $portion_amnt, palette);
             DynamicImage::ImageRgb8(rgb8_image)
@@ -121,6 +124,7 @@ macro_rules! error_prop_mod {
     ($mod_name:ident, {$($fn_name:ident $rgb_fn_name:ident [$($matrix:tt)*]{$matrix_name:ident, $error_amnt:expr, $portion_amnt:expr},)*}) => {
         pub mod $mod_name {
             use image::DynamicImage;
+            use palette::Srgb;
             use crate::{
                 dither::{
                     errorpropagate::{
@@ -128,7 +132,6 @@ macro_rules! error_prop_mod {
                         error_propagate_through_pixels_rgb
                     },
                 },
-                pixel::rgb::RgbPixel
             };
 
             $(

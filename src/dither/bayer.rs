@@ -1,7 +1,8 @@
 use image::{DynamicImage, Pixel};
 use ndarray::{concatenate, Array, Axis, Dim};
+use palette::Srgb;
 
-use crate::{pixel::rgb::RgbPixel, utils::numops::average};
+use crate::{utils::numops::average, colour::utils::quantize_rgb};
 
 fn dither_matrix(n: usize) -> Array<f64, Dim<[usize; 2]>> {
     if n == 1 {
@@ -49,7 +50,7 @@ pub fn bayer_mono_dither(image: DynamicImage, dither_size: usize) -> DynamicImag
     DynamicImage::ImageRgb8(rgb8_image)
 }
 
-pub fn bayer_dither(image: DynamicImage, dither_size: usize, palette: &[RgbPixel]) -> DynamicImage {
+pub fn bayer_dither(image: DynamicImage, dither_size: usize, palette: &[Srgb]) -> DynamicImage {
     // let mut rgb8_image = image.into_rgb8();
     let matrix = dither_matrix(dither_size);
     let mut rgb8_image = image.into_rgb8();
@@ -58,7 +59,7 @@ pub fn bayer_dither(image: DynamicImage, dither_size: usize, palette: &[RgbPixel
         let xs = x as usize;
         let ys = y as usize;
 
-        let rgb = RgbPixel::from(&*pixel);
+        let mut color = Srgb::from(pixel.0).into_format::<f32>();
 
         let offset = (1.0 / 3.0)
             * (matrix
@@ -66,10 +67,11 @@ pub fn bayer_dither(image: DynamicImage, dither_size: usize, palette: &[RgbPixel
                 .unwrap_or(&0.0)
                 - 0.5) as f32;
 
-        (pixel[0], pixel[1], pixel[2]) = rgb
-            .add_error((offset, offset, offset))
-            .quantize(palette)
-            .get_u8();
+        color.red = color.red + offset;
+        color.blue = color.blue + offset;
+        color.green = color.green + offset;
+
+        pixel.0 = quantize_rgb(color, palette).into_format().into();
     }
 
     DynamicImage::ImageRgb8(rgb8_image)

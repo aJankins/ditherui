@@ -4,8 +4,6 @@ use image::Rgb;
 /// Represents a monochromatic pixel. It only has one value, which effectively represents the luminance.
 pub struct MonoPixel(u8);
 
-pub const ONE_BIT: &'static [MonoPixel] = &[MonoPixel(0), MonoPixel(255)];
-
 impl From<u8> for MonoPixel {
     fn from(value: u8) -> Self {
         MonoPixel(value)
