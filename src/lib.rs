@@ -97,7 +97,7 @@ mod test {
 
     use crate::{
         dither::palettes,
-        pixel::rgb::RgbPixel,
+        pixel::rgb::{RgbPixel, colours as RGB},
         prelude::*,
         utils::{image::load_image_from_url_with_max_dim, ImageFilterResult},
     };
@@ -122,9 +122,14 @@ mod test {
     fn dither_test() -> ImageFilterResult<()> {
         let image = get_image()?;
 
+        let palette = [
+            RGB::RED.build_gradient_mix(&RGB::YELLOW, 10)
+        ].concat();
+
         mono(&image)?;
         colour_websafe(&image)?; // takes a long time due to large palette
         colour_eightbit(&image)?; // significantly faster
+        colour(&image, &palette, Some("-custom-palette"))?;
 
         Ok(())
     }

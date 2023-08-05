@@ -24,6 +24,7 @@ pub fn cie76(lab_a: Colour, lab_b: Colour) -> f32 {
     ).sqrt()
 }
 
+/// This function may not work correctly.
 pub fn cie94(lch_a: Colour, lch_b: Colour) -> f32 {
     const K_L: f32 = 1.0;
     const K_C: f32 = 1.0;

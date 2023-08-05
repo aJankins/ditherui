@@ -132,6 +132,22 @@ impl RgbPixel {
         )
     }
 
+    pub fn mix_oklch(&self, ratio: f32, other: &RgbPixel) -> Self {
+        let ratio = ratio.clamp(0.0, 1.0);
+        let mix_calc = |pixchan1: f32, pixchan2: f32| {
+            (pixchan1 * ratio) + pixchan2 * (1.0 - ratio)
+        };
+
+        let oklch_1 = self.as_oklch();
+        let oklch_2 = other.as_oklch();
+
+        RgbPixel(
+            mix_calc(oklch_1.0, oklch_2.0),
+            mix_calc(oklch_1.1, oklch_2.1),
+            mix_calc(oklch_1.2, oklch_2.2),
+        )
+    }
+
     /// This function will build a gradient out of the current colour.
     /// by generating a list of said colour with varying luminance - utilising HSL.
     ///
@@ -144,10 +160,10 @@ impl RgbPixel {
         (1..=shades)
             .into_iter()
             .map(|i| {
-                self.as_hsl()
+                self.as_oklch()
                     // set the luminance to black first
-                    .add_luminance(-2.0)
-                    .add_luminance(i as f32 * fractional)
+                    .add_luma(-2.0)
+                    .add_luma(i as f32 * fractional)
                     .as_rgb()
             })
             .collect()
