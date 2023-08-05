@@ -27,6 +27,7 @@
 //! just for better code ergonomics.
 
 use image::DynamicImage;
+use palette::Srgb;
 
 /// Contains multiple algorithms for dithering an image - both in 1-bit and RGB variants.
 pub mod dither;
@@ -84,29 +85,43 @@ impl AdjustableImage for DynamicImage {
 /// ];
 /// ```
 macro_rules! hsl_gradient_map {
-    [$($threshold:expr => sat: $sat:expr, lum: $lum:expr, hue: $hue:expr),*] => {
-        [
+    [let $name: ident, $($threshold:expr => sat: $sat:expr, lum: $lum:expr, hue: $hue:expr),*] => {
+        let $name: &[(Hsl, f32)] = &[
             $(
-                (HslPixel::from(($hue, $sat, $lum)).to_rgb(), $threshold)
+                (Hsl::from_components(($hue, $sat, $lum)), $threshold)
             ),*
-        ]
+        ];
     };
 }
+// type GradientMap<T> = &[(Color<T>, f32)] where T: Srgb;
+
+macro_rules! gradient_map {
+    [$($threshold:expr => $color:expr),*] => {
+        &[
+            $(
+                ($color, $threshold)
+            ),*
+        ];
+    };
+}
+
+pub type GradientMap<'a, Color> = &'a [(Color, f32)];
+
 
 #[cfg(test)]
 mod test {
     use image::{DynamicImage, ImageResult};
-    use palette::{rgb::Rgb, Srgb};
+    use palette::{Srgb, Hsl};
 
     use crate::{
         dither::palettes,
-        colour::colours::srgb as RGB,
+        colour::{colours::srgb as RGB, gradient::IntoGradient},
         prelude::*,
-        utils::{image::load_image_from_url_with_max_dim, ImageFilterResult}, colour::utils::{build_rgb_gradient, GradientMethod},
+        utils::{image::load_image_from_url_with_max_dim, ImageFilterResult}, colour::utils::{build_rgb_gradient, GradientMethod, hexcode_to_srgb}, GradientMap,
     };
 
     fn get_image() -> ImageFilterResult<DynamicImage> {
-        load_image_from_url_with_max_dim("https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Double-alaskan-rainbow.jpg/1200px-Double-alaskan-rainbow.jpg", 1080)
+        load_image_from_url_with_max_dim("https://cdn.britannica.com/61/234061-050-6D985ED2/Carina-Nebula-Cosmic-Cliffs-NGC-3324-James-Webb-Space-Telescope-NIRCam.jpg", 1080)
     }
 
     #[test]
@@ -125,10 +140,19 @@ mod test {
     fn dither_test() -> ImageFilterResult<()> {
         let image = get_image()?;
 
+        hsl_gradient_map![
+            let hsl,
+            0.00 => sat: 0.0, lum: 0.0, hue: 0.0
+        ];
+
+        let hsl: GradientMap<Hsl<Srgb>> = gradient_map!(
+            0.00 => Hsl::new(0.0, 0.0, 0.0)
+        );
+
         let palette = [
-            dbg!(build_rgb_gradient(RGB::RED, 5, GradientMethod::LCH)),
-            dbg!(build_rgb_gradient(RGB::BLUE, 5, GradientMethod::LCH)),
-            dbg!(build_rgb_gradient(RGB::GOLD, 20, GradientMethod::LCH)),
+            RGB::RED.build_gradient_lch(5),
+            RGB::BLUE.build_gradient_lch(5),
+            RGB::GOLD.build_gradient_lch(5),
         ].concat();
 
         mono(&image)?;
@@ -139,7 +163,7 @@ mod test {
         Ok(())
     }
 
-    // #[test]
+    #[test]
     fn filter_effects_test() -> ImageFilterResult<()> {
         let image = get_image()?;
 
