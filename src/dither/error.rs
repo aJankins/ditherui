@@ -6,9 +6,9 @@ use crate::{
     colour::utils::{quantize_rgb, ONE_BIT, compute_rgb_error, grayscale_rgb},
 };
 
-pub fn error_propagate_through_pixels<const N: usize>(
+pub fn error_propagate_through_pixels(
     image: &mut ImageBuffer<Rgb<u8>, Vec<u8>>,
-    matrix: [(i8, i8, u8); N],
+    matrix: &[(i8, i8, u8)],
     total_portions: u16,
 ) {
     let (xdim, ydim) = image.dimensions();
@@ -53,9 +53,9 @@ pub fn error_propagate_through_pixels<const N: usize>(
     }
 }
 
-pub fn error_propagate_through_pixels_rgb<const N: usize>(
+pub fn error_propagate_through_pixels_rgb(
     image: &mut ImageBuffer<Rgb<u8>, Vec<u8>>,
-    matrix: [(i8, i8, u8); N],
+    matrix: &[(i8, i8, u8)],
     total_portions: u16,
     palette: &[Srgb],
 ) {
@@ -100,7 +100,7 @@ pub fn error_propagate_through_pixels_rgb<const N: usize>(
     }
 }
 
-macro_rules! error_prop_fn {
+macro_rules! error_prop_1bit_fn {
     ($fn_name:ident, $matrix:expr, $portion_amnt:expr) => {
         pub fn $fn_name(image: DynamicImage) -> DynamicImage {
             let mut rgb8_image = image.into_rgb8();
@@ -120,118 +120,102 @@ macro_rules! error_prop_rgb_fn {
     };
 }
 
+
 macro_rules! error_prop_mod {
-    ($mod_name:ident, {$($fn_name:ident $rgb_fn_name:ident [$($matrix:tt)*]{$matrix_name:ident, $error_amnt:expr, $portion_amnt:expr},)*}) => {
+    ($mod_name:ident, [$($matrix:tt)*] / $portion_amnt:expr) => {
         pub mod $mod_name {
             use image::DynamicImage;
             use palette::Srgb;
             use crate::{
                 dither::{
-                    errorpropagate::{
+                    error::{
                         error_propagate_through_pixels,
                         error_propagate_through_pixels_rgb
                     },
                 },
             };
 
-            $(
-                static $matrix_name: [(i8, i8, u8); $error_amnt] = [$($matrix)*];
-            )*
+            static PROPAGATION_MATRIX: &[(i8, i8, u8)] = &[$($matrix)*];
 
-            $(
-                error_prop_fn!($fn_name, $matrix_name, $portion_amnt);
-                error_prop_rgb_fn!($rgb_fn_name, $matrix_name, $portion_amnt);
-            )*
+            error_prop_1bit_fn!(dither_1bit, PROPAGATION_MATRIX, $portion_amnt);
+            error_prop_rgb_fn!(dither_rgb, PROPAGATION_MATRIX, $portion_amnt);
         }
     };
 }
 
 error_prop_mod!(
-    floydsteinberg,
-    {
-        floyd_steinberg_mono_dither
-        floyd_steinberg_rgb_dither
+    floyd_steinberg,
         [
                                  (1, 0, 7),
             (-1, 1, 5),(0, 1, 3),(1, 1, 1),
-        ]{MATRIX, 4, 16},
-    }
+        ] / 16
 );
 
 error_prop_mod!(
-    jarvisjudiceninke,
-    {
-        jarvis_judice_ninke_mono_dither
-        jarvis_judice_ninke_rgb_dither
+    jarvis_judice_ninke,
         [
                                             (1, 0, 7),(2, 0, 5),
             (-2, 1, 3),(-1, 1, 5),(0, 1, 7),(1, 1, 5),(2, 1, 3),
             (-2, 2, 1),(-1, 2, 3),(0, 2, 5),(1, 2, 3),(2, 2, 1),
-        ]{MATRIX, 12, 48},
-    }
+        ] / 48
 );
 
 error_prop_mod!(
     atkinson,
-    {
-        atkinson_mono_dither
-        atkinson_rgb_dither
         [
                                  (1, 0, 1),(2, 0, 1),
             (-1, 1, 1),(0, 1, 1),(1, 1, 1),
                        (0, 2, 1)
-        ]{MATRIX, 6, 8},
-    }
+        ] / 8
 );
 
 error_prop_mod!(
     burkes,
-    {
-        burkes_mono_dither
-        burkes_rgb_dither
         [
                                                (1, 0, 8), (2, 0, 4),
             (-2, 1, 2), (-1, 1, 4), (0, 1, 8), (1, 1, 4), (2, 1, 2),
-        ]{MATRIX, 7, 32},
-    }
+        ] / 32
 );
 
 error_prop_mod!(
     stucki,
-    {
-        stucki_mono_dither
-        stucki_rgb_dither
         [
                                             (1, 0, 8),(2, 0, 4),
             (-2, 1, 2),(-1, 1, 4),(0, 1, 8),(1, 1, 4),(2, 1, 2),
             (-2, 2, 1),(-1, 2, 2),(0, 2, 4),(1, 2, 2),(2, 2, 1),
-        ]{MATRIX, 12, 42},
-    }
+        ] / 42
 );
 
-error_prop_mod!(
-    sierra,
-    {
-        sierra_mono_dither
-        sierra_rgb_dither
-        [
-                                            (1, 0, 5),(2, 0, 3),
-            (-2, 1, 2),(-1, 1, 4),(0, 1, 5),(1, 1, 4),(2, 1, 2),
-                       (-1, 2, 2),(0, 2, 3),(1, 2, 2),
-        ]{MATRIX, 10, 32},
+pub mod sierra {
+    use image::DynamicImage;
+    use palette::Srgb;
+    use crate::dither::error::{
+        error_propagate_through_pixels,
+        error_propagate_through_pixels_rgb
+    };
 
-        two_row_sierra_mono_dither
-        two_row_sierra_rgb_dither
-        [
-                                            (1, 0, 4),(2, 0, 3),
-            (-2, 1, 1),(-1, 1, 2),(0, 1, 3),(1, 1, 2),(2, 1, 1),
-        ]{TWO_ROW_MATRIX, 7, 16},
+    static PROPAGATION_MATRIX: &[(i8, i8, u8)] =         &[
+                                        (1, 0, 5),(2, 0, 3),
+        (-2, 1, 2),(-1, 1, 4),(0, 1, 5),(1, 1, 4),(2, 1, 2),
+                   (-1, 2, 2),(0, 2, 3),(1, 2, 2),
+    ];
 
-        sierra_lite_mono_dither
-        sierra_lite_rgb_dither
-        [
-                                 (1, 0, 2),
-            (-1, 1, 1),(0, 1, 1)
-        ]{LITE_MATRIX, 3, 4},
-    }
-);
+    error_prop_1bit_fn!(dither_1bit, PROPAGATION_MATRIX, 32);
+    error_prop_rgb_fn!(dither_rgb, PROPAGATION_MATRIX, 32);
+
+    error_prop_mod!(
+        two_row,
+            [
+                                                (1, 0, 4),(2, 0, 3),
+                (-2, 1, 1),(-1, 1, 2),(0, 1, 3),(1, 1, 2),(2, 1, 1),
+            ] / 16
+    );
+
+    error_prop_mod!(
+        lite,
+            [
+                                     (1, 0, 2),
+                (-1, 1, 1),(0, 1, 1)
+            ] / 4
+    );
+}

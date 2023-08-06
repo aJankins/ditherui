@@ -6,16 +6,8 @@ use crate::ImageEffect;
 use super::{
     basic::{basic_colour_dither, basic_mono_dither},
     bayer::{bayer_dither, bayer_mono_dither},
-    errorpropagate::{
-        atkinson::{atkinson_mono_dither, atkinson_rgb_dither},
-        burkes::{burkes_mono_dither, burkes_rgb_dither},
-        floydsteinberg::{floyd_steinberg_mono_dither, floyd_steinberg_rgb_dither},
-        jarvisjudiceninke::{jarvis_judice_ninke_mono_dither, jarvis_judice_ninke_rgb_dither},
-        sierra::{
-            sierra_lite_mono_dither, sierra_lite_rgb_dither, sierra_mono_dither, sierra_rgb_dither,
-            two_row_sierra_mono_dither, two_row_sierra_rgb_dither,
-        },
-        stucki::{stucki_mono_dither, stucki_rgb_dither},
+    error::{
+        floyd_steinberg, jarvis_judice_ninke, atkinson, burkes, stucki, sierra
     },
 };
 
@@ -81,16 +73,16 @@ pub enum Algorithms<'a> {
 impl ImageEffect<DynamicImage> for MonoAlgorithms {
     fn apply(&self, image: DynamicImage) -> DynamicImage {
         match self {
-            Self::Basic => basic_mono_dither(image),
-            Self::FloydSteinberg => floyd_steinberg_mono_dither(image),
-            Self::JarvisJudiceNinke => jarvis_judice_ninke_mono_dither(image),
-            Self::Stucki => stucki_mono_dither(image),
-            Self::Atkinson => atkinson_mono_dither(image),
-            Self::Burkes => burkes_mono_dither(image),
-            Self::Sierra => sierra_mono_dither(image),
-            Self::SierraTwoRow => two_row_sierra_mono_dither(image),
-            Self::SierraLite => sierra_lite_mono_dither(image),
-            Self::Bayer(n) => bayer_mono_dither(image, *n),
+            Self::Basic             => basic_mono_dither(image),
+            Self::FloydSteinberg    => floyd_steinberg::dither_1bit(image),
+            Self::JarvisJudiceNinke => jarvis_judice_ninke::dither_1bit(image),
+            Self::Stucki            => stucki::dither_1bit(image),
+            Self::Atkinson          => atkinson::dither_1bit(image),
+            Self::Burkes            => burkes::dither_1bit(image),
+            Self::Sierra            => sierra::dither_1bit(image),
+            Self::SierraTwoRow      => sierra::two_row::dither_1bit(image),
+            Self::SierraLite        => sierra::lite::dither_1bit(image),
+            Self::Bayer(n)  => bayer_mono_dither(image, *n),
         }
     }
 }
@@ -98,16 +90,16 @@ impl ImageEffect<DynamicImage> for MonoAlgorithms {
 impl<'a> ImageEffect<DynamicImage> for Algorithms<'a> {
     fn apply(&self, image: DynamicImage) -> DynamicImage {
         match self {
-            Self::Basic(palette) => basic_colour_dither(image, palette),
-            Self::FloydSteinberg(palette) => floyd_steinberg_rgb_dither(image, palette),
-            Self::JarvisJudiceNinke(palette) => jarvis_judice_ninke_rgb_dither(image, palette),
-            Self::Stucki(palette) => stucki_rgb_dither(image, palette),
-            Self::Atkinson(palette) => atkinson_rgb_dither(image, palette),
-            Self::Burkes(palette) => burkes_rgb_dither(image, palette),
-            Self::Sierra(palette) => sierra_rgb_dither(image, palette),
-            Self::SierraTwoRow(palette) => two_row_sierra_rgb_dither(image, palette),
-            Self::SierraLite(palette) => sierra_lite_rgb_dither(image, palette),
-            Self::Bayer(n, palette) => bayer_dither(image, *n, palette),
+            Self::Basic(palette)                => basic_colour_dither(image, palette),
+            Self::FloydSteinberg(palette)       => floyd_steinberg::dither_rgb(image, palette),
+            Self::JarvisJudiceNinke(palette)    => jarvis_judice_ninke::dither_rgb(image, palette),
+            Self::Stucki(palette)               => stucki::dither_rgb(image, palette),
+            Self::Atkinson(palette)             => atkinson::dither_rgb(image, palette),
+            Self::Burkes(palette)               => burkes::dither_rgb(image, palette),
+            Self::Sierra(palette)               => sierra::dither_rgb(image, palette),
+            Self::SierraTwoRow(palette)         => sierra::two_row::dither_rgb(image, palette),
+            Self::SierraLite(palette)           => sierra::lite::dither_rgb(image, palette),
+            Self::Bayer(n, palette)     => bayer_dither(image, *n, palette),
         }
     }
 }
