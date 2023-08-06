@@ -52,6 +52,8 @@ pub mod prelude {
 
     pub use crate::colour::colours::srgb as SrgbColour;
     pub use crate::colour::gradient::IntoGradient;
+    pub use crate::dither::error;
+    pub use crate::colour::palettes;
 }
 
 /// Defines an effect that can be applied onto an image.
@@ -126,13 +128,12 @@ pub type GradientMap<'a, Color> = &'a [(Color, f32)];
 #[cfg(test)]
 mod test {
     use image::{DynamicImage, ImageResult};
-    use palette::{Srgb, Hsl};
+    use palette::Srgb;
 
     use crate::{
-        dither::palettes,
-        colour::{colours::srgb as RGB, gradient::IntoGradient},
+        colour::{colours::srgb as RGB, gradient::IntoGradient, palettes},
         prelude::*,
-        utils::{image::load_image_from_url_with_max_dim, ImageFilterResult}, colour::utils::{build_rgb_gradient, GradientMethod, hexcode_to_srgb}, GradientMap,
+        utils::{image::load_image_from_url_with_max_dim, ImageFilterResult},
     };
 
     fn get_image() -> ImageFilterResult<DynamicImage> {
@@ -155,15 +156,6 @@ mod test {
     fn dither_test() -> ImageFilterResult<()> {
         let image = get_image()?;
 
-        hsl_gradient_map![
-            let hsl,
-            0.00 => sat: 0.0, lum: 0.0, hue: 0.0
-        ];
-
-        let hsl: GradientMap<Hsl<Srgb>> = gradient_map!(
-            0.00 => Hsl::new(0.0, 0.0, 0.0)
-        );
-
         let palette = [
             RGB::RED.build_gradient_lch(5),
             RGB::BLUE.build_gradient_lch(5),
@@ -171,7 +163,7 @@ mod test {
         ].concat();
 
         mono(&image)?;
-        // colour_websafe(&image)?; // takes a long time due to large palette
+        colour_websafe(&image)?; // takes a long time due to large palette
         colour_eightbit(&image)?; // significantly faster
         colour(&image, &palette, Some("-custom-palette"))?;
 

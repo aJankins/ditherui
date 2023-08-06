@@ -58,10 +58,10 @@ Currently supports the following effects:
 
 |         **Name** | *Image*                                |
 | ---------------: | -------------------------------------- |
-|    brighten +0.2 | ![](./data/colour/brighten+0.1.png)    |
-|    brighten -0.2 | ![](./data/colour/brighten-0.1.png)    |
-|    saturate +0.2 | ![](./data/colour/saturate+0.05.png)   |
-|    saturate -0.2 | ![](./data/colour/saturate-0.05.png)   |
+|    brighten +0.2 | ![](./data/colour/brighten+0.2.png)    |
+|    brighten -0.2 | ![](./data/colour/brighten-0.2.png)    |
+|    saturate +0.2 | ![](./data/colour/saturate+0.2.png)   |
+|    saturate -0.2 | ![](./data/colour/saturate-0.2.png)   |
 |     contrast 0.5 | ![](./data/colour/contrast.0.5.png)    |
 |     contrast 1.5 | ![](./data/colour/contrast.1.5.png)    |
 | gradient mapping | ![](./data/colour/gradient-mapped.png) |
