@@ -48,79 +48,46 @@ pub enum Algorithms<'a> {
     /// This *only* changes the hue - useful for defining a colour
     /// scheme without losing luminance/saturation detail.
     QuantizeHue(&'a [f32]),
-    DEBUG,
 }
 
 impl<'a> ImageEffect<DynamicImage> for Algorithms<'a> {
     fn apply(&self, image: DynamicImage) -> DynamicImage {
         // let mut image = image.into_rgb8();
         match self {
-            Self::RotateHue(degrees) => apply_shift_hue(image, *degrees),
-            Self::Contrast(amount) => apply_contrast(image, *amount),
-            Self::Brighten(amount) => apply_brighten(image, *amount),
-            Self::Saturate(amount) => apply_saturate(image, *amount),
-            Self::QuantizeHue(hues) => apply_quantize_hue(image, hues),
-            Self::GradientMap(gradient) => apply_gradient_map(image, gradient),
-            Self::DEBUG => _debug_filter(image),
+            Self::RotateHue(degrees) => dynamic_image_shift_hue(image, *degrees),
+            Self::Contrast(amount) => dynamic_image_contrast(image, *amount),
+            Self::Brighten(amount) => dynamic_image_brighten(image, *amount),
+            Self::Saturate(amount) => dynamic_image_saturate(image, *amount),
+            Self::QuantizeHue(hues) => dynamic_image_quantize_hue(image, hues),
+            Self::GradientMap(gradient) => dynamic_image_gradient_map(image, gradient),
         }
     }
 }
 
-fn apply_contrast(image: DynamicImage, amount: f32) -> DynamicImage {
-    let mut image = image.into_rgb8();
+macro_rules! dynamic_image_effect {
+    ($fn_name:ident($($param:ident: $type:ty),+) -> $effect_fn:ident) => {
+        fn $fn_name (image: DynamicImage, $($param: $type),+) -> DynamicImage {
+            let mut image = image.into_rgb8();
 
-    for (_, _, pixel) in image.enumerate_pixels_mut() {
-        pixel.0 = contrast(pixel.0, amount)
-    }
+            for (_, _, pixel) in image.enumerate_pixels_mut() {
+                pixel.0 = $effect_fn (pixel.0, $($param),+);
+            }
 
-    DynamicImage::ImageRgb8(image)
+            DynamicImage::ImageRgb8(image)
+        }
+    };
 }
 
-fn apply_quantize_hue(image: DynamicImage, hues: &[f32]) -> DynamicImage {
+// dynamic image effects
+
+dynamic_image_effect!(dynamic_image_contrast(amount: f32) -> contrast);
+dynamic_image_effect!(dynamic_image_quantize_hue(hues: &[f32]) -> quantize_hue);
+dynamic_image_effect!(dynamic_image_brighten(amount: f32) -> brighten);
+dynamic_image_effect!(dynamic_image_saturate(amount: f32) -> saturate);
+dynamic_image_effect!(dynamic_image_shift_hue(degrees: f32) -> shift_hue);
+
+fn dynamic_image_gradient_map(image: DynamicImage, gradient: &[(Srgb, f32)]) -> DynamicImage {
     let mut image = image.into_rgb8();
-
-    for (_, _, pixel) in image.enumerate_pixels_mut() {
-        pixel.0 = quantize_hue(pixel.0, hues);
-    }
-
-    DynamicImage::ImageRgb8(image)
-}
-
-fn apply_brighten(image: DynamicImage, amount: f32) -> DynamicImage {
-    let mut image = image.into_rgb8();
-
-    for (_, _, pixel) in image.enumerate_pixels_mut() {
-        pixel.0 = brighten(pixel.0, amount);
-    }
-
-    DynamicImage::ImageRgb8(image)
-}
-
-fn apply_saturate(image: DynamicImage, amount: f32) -> DynamicImage {
-    let mut image = image.into_rgb8();
-
-    for (_, _, pixel) in image.enumerate_pixels_mut() {
-        pixel.0 = saturate(pixel.0, amount)
-    }
-
-    DynamicImage::ImageRgb8(image)
-}
-
-fn apply_shift_hue(image: DynamicImage, degrees: f32) -> DynamicImage {
-    let mut image = image.into_rgb8();
-
-    for (_, _, pixel) in image.enumerate_pixels_mut() {
-        pixel.0 = shift_hue(pixel.0, degrees);
-    }
-
-    DynamicImage::ImageRgb8(image)
-}
-
-fn apply_gradient_map(image: DynamicImage, gradient: &[(Srgb, f32)]) -> DynamicImage {
-    let mut image = image.into_rgb8();
-
-    let mut sorted = Vec::from(gradient.clone());
-    sorted.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
 
     for (_, _, pixel) in image.enumerate_pixels_mut() {
         let rgb = gradient_map(pixel.0, gradient);
@@ -133,11 +100,4 @@ fn apply_gradient_map(image: DynamicImage, gradient: &[(Srgb, f32)]) -> DynamicI
     }
 
     DynamicImage::ImageRgb8(image)
-}
-
-// debug code
-
-fn _debug_filter(image: DynamicImage) -> DynamicImage {
-    let _ = image.save("data/original.png");
-    image
 }

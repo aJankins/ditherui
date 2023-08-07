@@ -141,18 +141,6 @@ mod test {
     }
 
     #[test]
-    fn _debug() -> ImageFilterResult<()> {
-        let image = get_image()?;
-
-        image
-            .clone()
-            .apply(Filter::DEBUG)
-            .save("data/DEBUG.png")?;
-
-        Ok(())
-    }
-
-    #[test]
     fn dither_test() -> ImageFilterResult<()> {
         let image = get_image()?;
 
