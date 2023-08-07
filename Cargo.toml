@@ -1,10 +1,10 @@
 [package]
-name = "image-filters"
-description = "An assortment of filters that can be applied to an image. Uses the 'image' crate."
+name = "image-effects"
+description = "An assortment of effects that can be applied to an image with the help of `image`."
 version = "0.1.0"
 license = "MPL-2.0"
 readme = "README.md"
-keywords = ["image", "filters", "dither"]
+keywords = ["image", "effects", "dither"]
 categories = ["multimedia::images"]
 authors = ["enbyss"]
 edition = "2021"

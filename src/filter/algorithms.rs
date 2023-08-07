@@ -1,7 +1,9 @@
 use image::DynamicImage;
 use palette::{cast, Oklch, Srgb, IntoColor, SetHue, ShiftHue, FromColor, Lighten, Darken, Lch, rgb::Rgb};
 
-use crate::{ImageEffect, colour::utils::quantize_hue};
+use crate::{ImageEffect};
+
+use super::direct::{contrast, gradient_map, rgb_to_srgb, srgb_to_rgb, quantize_hue};
 
 pub const CHROMA_BOUND: f32 = 128.0;
 
@@ -67,11 +69,7 @@ fn apply_contrast(image: DynamicImage, amount: f32) -> DynamicImage {
     let mut image = image.into_rgb8();
 
     for (_, _, pixel) in image.enumerate_pixels_mut() {
-        let mut color = Srgb::from(pixel.0).into_format::<f32>();
-        color.red = (((color.red - 0.5) * amount) + 0.5).clamp(0.0, 1.0);
-        color.blue = (((color.blue - 0.5) * amount) + 0.5).clamp(0.0, 1.0);
-        color.green = (((color.green - 0.5) * amount) + 0.5).clamp(0.0, 1.0);
-        pixel.0 = Srgb::from_color(color).into_format().into();
+        pixel.0 = contrast(pixel.0, amount)
     }
 
     DynamicImage::ImageRgb8(image)
@@ -84,43 +82,13 @@ fn apply_gradient_map(image: DynamicImage, gradient: &[(Srgb, f32)]) -> DynamicI
     sorted.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
 
     for (_, _, pixel) in image.enumerate_pixels_mut() {
-        let color = Srgb::from(pixel.0).into_format::<f32>();
-        let color = Lch::from_color(color);
-        let l = color.l / 100.0;
+        let rgb = gradient_map(pixel.0, gradient);
 
-        let index = sorted.iter().position(|(_, threshold)| l < *threshold);
-        if let Some(index) = index {
-            let prev_col = sorted.get(index - 1);
-            let curr_col = sorted.get(index);
-
-            if prev_col.and(curr_col).is_some() {
-                let (c_rgb, c_th) = curr_col.unwrap();
-                let (p_rgb, p_th) = prev_col.unwrap();
-
-                let c_dist = c_th - l;
-                let p_dist = l - p_th;
-
-                let c_ratio = 1.0 - (c_dist / (c_dist + p_dist));
-                let p_ratio = 1.0 - (p_dist / (c_dist + p_dist));
-
-                let (c_r, c_g, c_b) = c_rgb.into_format::<u8>().into_components();
-                let (p_r, p_g, p_b) = p_rgb.into_format::<u8>().into_components();
-
-                let (new_r, new_g, new_b) = (
-                    (c_ratio * c_r as f32 + p_ratio * p_r as f32),
-                    (c_ratio * c_g as f32 + p_ratio * p_g as f32),
-                    (c_ratio * c_b as f32 + p_ratio * p_b as f32),
-                );
-
-                pixel.0 = [
-                    new_r.clamp(0.0, 255.0).round() as u8,
-                    new_g.clamp(0.0, 255.0).round() as u8,
-                    new_b.clamp(0.0, 255.0).round() as u8,
-                ];
-            } else if curr_col.is_some() {
-                pixel.0 = curr_col.unwrap().0.into_format().into();
-            }
+        if let Some(rgb) = rgb {
+            pixel.0 = rgb.into_format().into();
         }
+
+
     }
 
     DynamicImage::ImageRgb8(image)
@@ -130,10 +98,7 @@ fn apply_quantize_hue(image: DynamicImage, hues: &[f32]) -> DynamicImage {
     let mut image = image.into_rgb8();
 
     for (_, _, pixel) in image.enumerate_pixels_mut() {
-        let color = Srgb::from(pixel.0).into_format::<f32>();
-        let mut color = Lch::from_color(color);
-        color.set_hue(quantize_hue(color.hue.into_degrees(), hues));
-        pixel.0 = Srgb::from_color(color).into_format().into();
+        pixel.0 = quantize_hue(pixel.0, hues);
     }
 
     DynamicImage::ImageRgb8(image)
