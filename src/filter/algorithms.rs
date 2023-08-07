@@ -1,9 +1,9 @@
 use image::DynamicImage;
-use palette::{cast, Oklch, Srgb, IntoColor, SetHue, ShiftHue, FromColor, Lighten, Darken, Lch, rgb::Rgb};
+use palette::Srgb;
 
-use crate::{ImageEffect};
+use crate::ImageEffect;
 
-use super::direct::{contrast, gradient_map, rgb_to_srgb, srgb_to_rgb, quantize_hue};
+use super::raw::{contrast, gradient_map, quantize_hue, brighten, saturate, shift_hue};
 
 pub const CHROMA_BOUND: f32 = 128.0;
 
@@ -53,13 +53,14 @@ pub enum Algorithms<'a> {
 
 impl<'a> ImageEffect<DynamicImage> for Algorithms<'a> {
     fn apply(&self, image: DynamicImage) -> DynamicImage {
+        // let mut image = image.into_rgb8();
         match self {
-            Self::RotateHue(degrees) => shift_hue(image, *degrees),
+            Self::RotateHue(degrees) => apply_shift_hue(image, *degrees),
             Self::Contrast(amount) => apply_contrast(image, *amount),
-            Self::Brighten(amount) => brighten(image, *amount),
-            Self::Saturate(amount) => saturate(image, *amount),
-            Self::GradientMap(gradient) => apply_gradient_map(image, gradient),
+            Self::Brighten(amount) => apply_brighten(image, *amount),
+            Self::Saturate(amount) => apply_saturate(image, *amount),
             Self::QuantizeHue(hues) => apply_quantize_hue(image, hues),
+            Self::GradientMap(gradient) => apply_gradient_map(image, gradient),
             Self::DEBUG => _debug_filter(image),
         }
     }
@@ -70,6 +71,46 @@ fn apply_contrast(image: DynamicImage, amount: f32) -> DynamicImage {
 
     for (_, _, pixel) in image.enumerate_pixels_mut() {
         pixel.0 = contrast(pixel.0, amount)
+    }
+
+    DynamicImage::ImageRgb8(image)
+}
+
+fn apply_quantize_hue(image: DynamicImage, hues: &[f32]) -> DynamicImage {
+    let mut image = image.into_rgb8();
+
+    for (_, _, pixel) in image.enumerate_pixels_mut() {
+        pixel.0 = quantize_hue(pixel.0, hues);
+    }
+
+    DynamicImage::ImageRgb8(image)
+}
+
+fn apply_brighten(image: DynamicImage, amount: f32) -> DynamicImage {
+    let mut image = image.into_rgb8();
+
+    for (_, _, pixel) in image.enumerate_pixels_mut() {
+        pixel.0 = brighten(pixel.0, amount);
+    }
+
+    DynamicImage::ImageRgb8(image)
+}
+
+fn apply_saturate(image: DynamicImage, amount: f32) -> DynamicImage {
+    let mut image = image.into_rgb8();
+
+    for (_, _, pixel) in image.enumerate_pixels_mut() {
+        pixel.0 = saturate(pixel.0, amount)
+    }
+
+    DynamicImage::ImageRgb8(image)
+}
+
+fn apply_shift_hue(image: DynamicImage, degrees: f32) -> DynamicImage {
+    let mut image = image.into_rgb8();
+
+    for (_, _, pixel) in image.enumerate_pixels_mut() {
+        pixel.0 = shift_hue(pixel.0, degrees);
     }
 
     DynamicImage::ImageRgb8(image)
@@ -89,66 +130,6 @@ fn apply_gradient_map(image: DynamicImage, gradient: &[(Srgb, f32)]) -> DynamicI
         }
 
 
-    }
-
-    DynamicImage::ImageRgb8(image)
-}
-
-fn apply_quantize_hue(image: DynamicImage, hues: &[f32]) -> DynamicImage {
-    let mut image = image.into_rgb8();
-
-    for (_, _, pixel) in image.enumerate_pixels_mut() {
-        pixel.0 = quantize_hue(pixel.0, hues);
-    }
-
-    DynamicImage::ImageRgb8(image)
-}
-
-fn brighten(image: DynamicImage, amount: f32) -> DynamicImage {
-    let mut image = image.into_rgb8();
-
-    for (_, _, pixel) in image.enumerate_pixels_mut() {
-        let color = Srgb::from(pixel.0).into_format::<f32>();
-        let mut color = Lch::from_color(color);
-
-        if amount >= 0.0 {
-            color = color.lighten(amount);
-        } else {
-            color = color.darken(amount.abs());
-        };
-
-        pixel.0 = Srgb::from_color(color).into_format().into();
-    }
-
-    DynamicImage::ImageRgb8(image)
-}
-
-fn saturate(image: DynamicImage, amount: f32) -> DynamicImage {
-    let mut image = image.into_rgb8();
-
-    for (_, _, pixel) in image.enumerate_pixels_mut() {
-        let color = Srgb::from(pixel.0).into_format::<f32>();
-        let mut color = Lch::from_color(color);
-
-        color.chroma = if amount >= 0.0 {
-            color.chroma + (CHROMA_BOUND - color.chroma) * amount
-        } else {
-            color.chroma + (color.chroma) * amount
-        };
-        pixel.0 = Srgb::from_color(color).into_format().into();
-    }
-
-    DynamicImage::ImageRgb8(image)
-}
-
-fn shift_hue(image: DynamicImage, degrees: f32) -> DynamicImage {
-    let mut image = image.into_rgb8();
-
-    for (_, _, pixel) in image.enumerate_pixels_mut() {
-        let color = Srgb::from(pixel.0).into_format::<f32>();
-        let mut color = Lch::from_color(color);
-        color = color.shift_hue(degrees);
-        pixel.0 = Srgb::from_color(color).into_format().into();
     }
 
     DynamicImage::ImageRgb8(image)

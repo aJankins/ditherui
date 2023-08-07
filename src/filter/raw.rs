@@ -1,6 +1,9 @@
-use palette::{Srgb, FromColor, Lch, SetHue};
+use palette::{Srgb, FromColor, Lch, SetHue, Lighten, Darken, ShiftHue};
 
 use crate::colour::utils;
+
+// consts
+pub const CHROMA_BOUND: f32 = 128.0;
 
 // utils
 #[inline] pub fn rgb_to_srgb(rgb: [u8; 3]) -> [f32; 3] {
@@ -40,6 +43,27 @@ pub fn quantize_hue<T>(rgb: T, hues: &[f32]) -> T
         T: Into<[u8; 3]> + From<[u8; 3]> 
 {
     T::from(_quantize_hue_u8(rgb.into(), hues))
+}
+
+pub fn brighten<T>(rgb: T, factor: f32) -> T 
+    where 
+        T: Into<[u8; 3]> + From<[u8; 3]> 
+{
+    T::from(_brighten_u8(rgb.into(), factor))
+}
+
+pub fn saturate<T>(rgb: T, factor: f32) -> T 
+    where 
+        T: Into<[u8; 3]> + From<[u8; 3]> 
+{
+    T::from(_saturate_u8(rgb.into(), factor))
+}
+
+pub fn shift_hue<T>(rgb: T, degrees: f32) -> T 
+    where 
+        T: Into<[u8; 3]> + From<[u8; 3]> 
+{
+    T::from(_shift_hue_u8(rgb.into(), degrees))
 }
 
 // PRIVATE API
@@ -103,8 +127,40 @@ fn _gradient_map_u8<U>(rgb: [u8; 3], gradient: &[(U, f32)]) -> Option<U>
 }
 
 pub fn _quantize_hue_u8(rgb: [u8; 3], hues: &[f32]) -> [u8; 3] {
-    let mut color = Srgb::from(rgb).into_format::<f32>();
+    let color = Srgb::from(rgb).into_format::<f32>();
     let mut color = Lch::from_color(color);
     color.set_hue(utils::quantize_hue(color.hue.into_degrees(), hues));
+    Srgb::from_color(color).into_format().into()
+}
+
+pub fn _brighten_u8(rgb: [u8; 3], factor: f32) -> [u8; 3] {
+    let color = Srgb::from(rgb).into_format::<f32>();
+    let mut color = Lch::from_color(color);
+
+    if factor >= 0.0 {
+        color = color.lighten(factor);
+    } else {
+        color = color.darken(factor.abs());
+    };
+
+    Srgb::from_color(color).into_format().into()
+}
+
+pub fn _saturate_u8(rgb: [u8; 3], factor: f32) -> [u8; 3] {
+    let color = Srgb::from(rgb).into_format::<f32>();
+    let mut color = Lch::from_color(color);
+
+    color.chroma = if factor >= 0.0 {
+        color.chroma + (CHROMA_BOUND - color.chroma) * factor
+    } else {
+        color.chroma + (color.chroma) * factor
+    };
+    Srgb::from_color(color).into_format().into()
+}
+
+pub fn _shift_hue_u8(rgb: [u8; 3], hue: f32) -> [u8; 3] {
+    let color = Srgb::from(rgb).into_format::<f32>();
+    let mut color = Lch::from_color(color);
+    color = color.shift_hue(hue);
     Srgb::from_color(color).into_format().into()
 }
