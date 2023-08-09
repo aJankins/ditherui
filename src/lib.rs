@@ -11,31 +11,62 @@
 //! algorithms work specifically with the `DynamicImage` struct (for now).
 //!
 //! The *prelude* comes with nice re-exports of the algorithms under `MonoDither`, `Dither` and `Filter`
-//! - in addition to the `ImageEffect` trait *(applied to all algorithms)* and `AdjustableImage`
-//! trait *(implemented for `DynamicImage`)*.
-//!
-//! Importing the `AdjustableImage` trait (manually or via the prelude) will allow you to call
-//! `.apply` on a `DynamicImage` directly. For comparison, here are both approaches for applying
-//! an effect:
-//!
+//! - in addition to some traits.
+//! 
+//! # Traits and Extensibility
+//! 
+//! ## Effect<T> and Affectable<E>
+//! 
+//! Think of these as opposites - like `From<T>` and `Into<T>`. The first defines an effect that can be
+//! applied on `T`, whereas the second defines something that can have an effect `E` applied to it.
+//! 
+//! If you'd like to extend this library with your own effect, implement `Effect<T>` on it - where `T` is
+//! what it can be applied on. Once you do this, `T` will _automatically_ implement `Affectable<E>`, where
+//! `E` is your effect.
+//! 
+//! Note that this doesn't go the opposite way - applying `Affectable<E>` on something won't implement
+//! `Effect<T>` due to conflicting implementation issues. To explain this, let's assume this _did_ work...
+//! 
+//! - User implements `Affectable<E>` on T.
+//! - `E` auto-implements `Effect<T>`...
+//! - ...which then auto-implements `Affectable<E>` again.
+//! 
+//! In the above case, see how your implementation immediately starts conflicting with the auto-implementation.
+//! This is more of a Rust limitation, but I wanted to explain the reasoning real quick incase anyone is curious
+//! _(or incase there's a not-hacky workaround I don't know about)_
+//! 
+//! In any case - this is currently only implemented for `DynamicImage`. But what if you wanted to implement this
+//! for another type - say a different image representation? That's where the `Input` traits come in.
+//! 
+//! ## `...Input`
+//! 
+//! Currently there are three:
+//! 
+//! - `dither::algorithm::MonoAlgorithmInput`
+//! - `dither::algorithm::AlgorithmInput`
+//! - `filter::algorithm::AlgorithmInput`
+//! 
+//! To support other representations, simply implement the respective `Input` trait for them. Once
+//! doing so, you'll automatically gain an `Effect<T>` and `Affectable<E>` implementation. To see why,
+//! here's the signature of one of these traits:
+//! 
 //! ```ignore
-//! Filter::Brighten( 0.2).apply(image); // without trait
-//! image.apply(Filter::Brighten( 0.2)); // with trait
+//! impl<'a, I: FilterInput> Effect<I> for Algorithms<'a>
 //! ```
-//!
-//! The benefit of this mostly comes when chaining effects together, and it's included mostly
-//! just for better code ergonomics.
-
-use image::DynamicImage;
+//! 
+//! As you can see, `Effect<I>` is implemented for `Algorithms` - where `I` is _any valid input_.
+//! 
+//! This is mostly here as I haven't tested whether `impl Effect<YourType> for ExternalType` would
+//! work, since your type is wrapped in generics. If this _does_ work then this complication could
+//! be bypassed by implementing `Effect<T>` directly.
+//! 
+//! In any case, the `Input` option is always available to you.
 
 /// Contains multiple algorithms for dithering an image - both in 1-bit and RGB variants.
 pub mod dither;
 
 /// Filters that can be applied to the image - such as brightness, contrast, and more.
 pub mod filter;
-
-/// Pixel utilities. Facilitates certain functionality such as colour difference and conversion between spaces.
-// pub mod pixel;
 
 /// Utilities. Mostly just for the test cases - will probably be removed.
 pub mod utils;
@@ -47,8 +78,8 @@ pub mod prelude {
     pub use crate::dither::algorithms::Algorithms as Dither;
     pub use crate::dither::algorithms::MonoAlgorithms as MonoDither;
     pub use crate::filter::algorithms::Algorithms as Filter;
-    pub use crate::AdjustableImage;
-    pub use crate::ImageEffect;
+    // pub use crate::AdjustableImage;
+    pub use crate::Effect;
 
     pub use crate::colour::colours::srgb as SrgbColour;
     pub use crate::colour::gradient::IntoGradient;
@@ -56,48 +87,38 @@ pub mod prelude {
     pub use crate::colour::palettes;
 }
 
-/// Defines an effect that can be applied onto an image.
-pub trait ImageEffect<T: ?Sized> {
-    fn apply(&self, image: T) -> T;
+/// Defines an effect that can be applied onto `T`.
+/// 
+/// Doing this will also implement `Affectable<E>` for `T` - where
+/// `E` is the `Effect` you're implementing this on.
+pub trait Effect<T> {
+    fn affect(&self, item: T) -> T;
 }
 
-/// Allows the implemented struct to use `.apply` directly.
-pub trait AdjustableImage {
-    fn apply(self, effect: impl ImageEffect<Self>) -> Self;
+/// Defines something that can have an effect applied to it.
+/// 
+/// It doesn't necessarily need to be implemented - if `Effect<T>` is implemented on `E`,
+/// then `T` will automatically implement `Affectable<E>`.
+pub trait Affectable<E> {
+    fn apply(self, effect: &E) -> Self;
 }
 
-impl AdjustableImage for DynamicImage {
-    fn apply(self, effect: impl ImageEffect<Self>) -> Self {
-        effect.apply(self)
+impl<T, E> Affectable<E> for T where E: Effect<T> {
+    fn apply(self, effect: &E) -> Self {
+        effect.affect(self)
     }
 }
 
-#[macro_export]
-/// Helps construct a gradient map from HSL values.
-///
-/// You *could* construct the map yourself, however the purpose of this is mostly to
-/// provide an easily usable and *clean* way to generate a gradient map from HSL values.
-///
-/// The following is an example usage of this macro:
-/// ```ignore
-/// let gradient = hsl_gradient_map![
-///     0.00 => sat: 0.0, lum: 0.0, hue: 0.0,
-///     0.30 => sat: 0.8, lum: 0.4, hue: 0.0,
-///     0.60 => sat: 0.8, lum: 0.5, hue: 30.0,
-///     0.80 => sat: 0.8, lum: 0.8, hue: 60.0,
-///     1.00 => sat: 0.0, lum: 1.0, hue: 90.0
-/// ];
-/// ```
-macro_rules! hsl_gradient_map {
-    [let $name: ident, $($threshold:expr => sat: $sat:expr, lum: $lum:expr, hue: $hue:expr),*] => {
-        let $name: &[(Hsl, f32)] = &[
-            $(
-                (Hsl::from_components(($hue, $sat, $lum)), $threshold)
-            ),*
-        ];
-    };
-}
-// type GradientMap<T> = &[(Color<T>, f32)] where T: Srgb;
+// /// Allows the implemented struct to use `.apply` directly.
+// pub trait AdjustableImage {
+//     fn apply(self, effect: impl ImageEffect<Self>) -> Self;
+// }
+
+// impl AdjustableImage for DynamicImage {
+//     fn apply(self, effect: impl ImageEffect<Self>) -> Self {
+//         effect.apply(self)
+//     }
+// }
 
 #[macro_export]
 /// Helps construct a gradient map from HSL values.
@@ -133,7 +154,7 @@ mod test {
     use crate::{
         colour::{colours::srgb as RGB, gradient::IntoGradient, palettes},
         prelude::*,
-        utils::{image::load_image_from_url_with_max_dim, ImageFilterResult},
+        utils::{image::load_image_from_url_with_max_dim, ImageFilterResult}, Affectable,
     };
 
     fn get_image() -> ImageFilterResult<DynamicImage> {
@@ -164,31 +185,31 @@ mod test {
 
         image
             .clone()
-            .apply(Filter::RotateHue(180.0))
+            .apply(&Filter::RotateHue(180.0))
             .save("data/colour/rotate-hue-180.png")?;
         image
             .clone()
-            .apply(Filter::Brighten( 0.2))
+            .apply(&Filter::Brighten( 0.2))
             .save("data/colour/brighten+0.2.png")?;
         image
             .clone()
-            .apply(Filter::Brighten(-0.2))
+            .apply(&Filter::Brighten(-0.2))
             .save("data/colour/brighten-0.2.png")?;
         image
             .clone()
-            .apply(Filter::Saturate( 0.2))
+            .apply(&Filter::Saturate( 0.2))
             .save("data/colour/saturate+0.2.png")?;
         image
             .clone()
-            .apply(Filter::Saturate(-0.2))
+            .apply(&Filter::Saturate(-0.2))
             .save("data/colour/saturate-0.2.png")?;
         image
             .clone()
-            .apply(Filter::Contrast(0.5))
+            .apply(&Filter::Contrast(0.5))
             .save("data/colour/contrast.0.5.png")?;
         image
             .clone()
-            .apply(Filter::Contrast(1.5))
+            .apply(&Filter::Contrast(1.5))
             .save("data/colour/contrast.1.5.png")?;
 
         let gradient_map = [
@@ -199,14 +220,14 @@ mod test {
 
         image
             .clone()
-            .apply(Filter::GradientMap(&gradient_map))
+            .apply(&Filter::GradientMap(&gradient_map))
             .save("data/colour/gradient-mapped.png")?;
 
         let hue_palette = [180.0, 300.0];
 
         image
             .clone()
-            .apply(Filter::QuantizeHue(&hue_palette))
+            .apply(&Filter::QuantizeHue(&hue_palette))
             .save("data/colour/quantize-hue.png")?;
 
         Ok(())
@@ -215,55 +236,55 @@ mod test {
     fn mono(image: &DynamicImage) -> ImageResult<()> {
         image
             .clone()
-            .apply(MonoDither::Basic)
+            .apply(&MonoDither::Basic)
             .save("data/dither/basic-mono.png")?;
         image
             .clone()
-            .apply(MonoDither::FloydSteinberg)
+            .apply(&MonoDither::FloydSteinberg)
             .save("data/dither/floyd-steinberg-mono.png")?;
         image
             .clone()
-            .apply(MonoDither::JarvisJudiceNinke)
+            .apply(&MonoDither::JarvisJudiceNinke)
             .save("data/dither/jarvis-judice-ninke-mono.png")?;
         image
             .clone()
-            .apply(MonoDither::Stucki)
+            .apply(&MonoDither::Stucki)
             .save("data/dither/stucki-mono.png")?;
         image
             .clone()
-            .apply(MonoDither::Atkinson)
+            .apply(&MonoDither::Atkinson)
             .save("data/dither/atkinson-mono.png")?;
         image
             .clone()
-            .apply(MonoDither::Burkes)
+            .apply(&MonoDither::Burkes)
             .save("data/dither/burkes-mono.png")?;
         image
             .clone()
-            .apply(MonoDither::Sierra)
+            .apply(&MonoDither::Sierra)
             .save("data/dither/sierra-mono.png")?;
         image
             .clone()
-            .apply(MonoDither::SierraTwoRow)
+            .apply(&MonoDither::SierraTwoRow)
             .save("data/dither/sierra-two-row-mono.png")?;
         image
             .clone()
-            .apply(MonoDither::SierraLite)
+            .apply(&MonoDither::SierraLite)
             .save("data/dither/sierra-lite-mono.png")?;
         image
             .clone()
-            .apply(MonoDither::Bayer(2))
+            .apply(&MonoDither::Bayer(2))
             .save("data/dither/bayer-2x2-mono.png")?;
         image
             .clone()
-            .apply(MonoDither::Bayer(4))
+            .apply(&MonoDither::Bayer(4))
             .save("data/dither/bayer-4x4-mono.png")?;
         image
             .clone()
-            .apply(MonoDither::Bayer(8))
+            .apply(&MonoDither::Bayer(8))
             .save("data/dither/bayer-8x8-mono.png")?;
         image
             .clone()
-            .apply(MonoDither::Bayer(16))
+            .apply(&MonoDither::Bayer(16))
             .save("data/dither/bayer-16x16-mono.png")?;
         Ok(())
     }
@@ -284,55 +305,55 @@ mod test {
         let postfix = opt_postfix.unwrap_or("");
         image
             .clone()
-            .apply(Dither::Basic(palette))
+            .apply(&Dither::Basic(palette))
             .save(format!("data/dither/basic{}.png", postfix))?;
         image
             .clone()
-            .apply(Dither::FloydSteinberg(palette))
+            .apply(&Dither::FloydSteinberg(palette))
             .save(format!("data/dither/floyd-steinberg{}.png", postfix))?;
         image
             .clone()
-            .apply(Dither::JarvisJudiceNinke(palette))
+            .apply(&Dither::JarvisJudiceNinke(palette))
             .save(format!("data/dither/jarvis-judice-ninke{}.png", postfix))?;
         image
             .clone()
-            .apply(Dither::Stucki(palette))
+            .apply(&Dither::Stucki(palette))
             .save(format!("data/dither/stucki{}.png", postfix))?;
         image
             .clone()
-            .apply(Dither::Atkinson(palette))
+            .apply(&Dither::Atkinson(palette))
             .save(format!("data/dither/atkinson{}.png", postfix))?;
         image
             .clone()
-            .apply(Dither::Burkes(palette))
+            .apply(&Dither::Burkes(palette))
             .save(format!("data/dither/burkes{}.png", postfix))?;
         image
             .clone()
-            .apply(Dither::Sierra(palette))
+            .apply(&Dither::Sierra(palette))
             .save(format!("data/dither/sierra{}.png", postfix))?;
         image
             .clone()
-            .apply(Dither::SierraTwoRow(palette))
+            .apply(&Dither::SierraTwoRow(palette))
             .save(format!("data/dither/sierra-two-row{}.png", postfix))?;
         image
             .clone()
-            .apply(Dither::SierraLite(palette))
+            .apply(&Dither::SierraLite(palette))
             .save(format!("data/dither/sierra-lite{}.png", postfix))?;
         image
             .clone()
-            .apply(Dither::Bayer(2, palette))
+            .apply(&Dither::Bayer(2, palette))
             .save(format!("data/dither/bayer-2x2{}.png", postfix))?;
         image
             .clone()
-            .apply(Dither::Bayer(4, palette))
+            .apply(&Dither::Bayer(4, palette))
             .save(format!("data/dither/bayer-4x4{}.png", postfix))?;
         image
             .clone()
-            .apply(Dither::Bayer(8, palette))
+            .apply(&Dither::Bayer(8, palette))
             .save(format!("data/dither/bayer-8x8{}.png", postfix))?;
         image
             .clone()
-            .apply(Dither::Bayer(16, palette))
+            .apply(&Dither::Bayer(16, palette))
             .save(format!("data/dither/bayer-16x16{}.png", postfix))?;
         Ok(())
     }

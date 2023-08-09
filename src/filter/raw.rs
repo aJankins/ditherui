@@ -78,7 +78,7 @@ fn _contrast_u8(rgb: [u8; 3], amount: f32) -> [u8; 3] {
 fn _gradient_map_u8<U>(rgb: [u8; 3], gradient: &[(U, f32)]) -> Option<U> 
     where U: Copy + Clone + Into<Srgb> + From<Srgb>
 {
-    let mut color = Srgb::from(rgb).into_format::<f32>();
+    let color = Srgb::from(rgb).into_format::<f32>();
     let color = Lch::from_color(color);
     let l = color.l / 100.0;
 

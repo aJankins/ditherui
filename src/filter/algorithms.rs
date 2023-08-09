@@ -1,7 +1,7 @@
 use image::DynamicImage;
 use palette::Srgb;
 
-use crate::ImageEffect;
+use crate::Effect;
 
 use super::raw::{contrast, gradient_map, quantize_hue, brighten, saturate, shift_hue};
 
@@ -50,17 +50,26 @@ pub enum Algorithms<'a> {
     QuantizeHue(&'a [f32]),
 }
 
-impl<'a> ImageEffect<DynamicImage> for Algorithms<'a> {
-    fn apply(&self, image: DynamicImage) -> DynamicImage {
-        // let mut image = image.into_rgb8();
-        match self {
-            Self::RotateHue(degrees) => dynamic_image_shift_hue(image, *degrees),
-            Self::Contrast(amount) => dynamic_image_contrast(image, *amount),
-            Self::Brighten(amount) => dynamic_image_brighten(image, *amount),
-            Self::Saturate(amount) => dynamic_image_saturate(image, *amount),
-            Self::QuantizeHue(hues) => dynamic_image_quantize_hue(image, hues),
-            Self::GradientMap(gradient) => dynamic_image_gradient_map(image, gradient),
+pub trait FilterInput {
+    fn run_through(self, algorithm: &Algorithms) -> Self;
+}
+
+impl FilterInput for DynamicImage {
+    fn run_through(self, algorithm: &Algorithms) -> Self {
+        match algorithm {
+            Algorithms::RotateHue(degrees) => dynamic_image_shift_hue(self, *degrees),
+            Algorithms::Contrast(amount) => dynamic_image_contrast(self, *amount),
+            Algorithms::Brighten(amount) => dynamic_image_brighten(self, *amount),
+            Algorithms::Saturate(amount) => dynamic_image_saturate(self, *amount),
+            Algorithms::QuantizeHue(hues) => dynamic_image_quantize_hue(self, hues),
+            Algorithms::GradientMap(gradient) => dynamic_image_gradient_map(self, gradient),
         }
+    }
+}
+
+impl<'a, I: FilterInput> Effect<I> for Algorithms<'a> {
+    fn affect(&self, item: I) -> I {
+        item.run_through(self) 
     }
 }
 

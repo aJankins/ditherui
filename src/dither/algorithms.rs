@@ -1,7 +1,7 @@
 use image::DynamicImage;
 use palette::Srgb;
 
-use crate::ImageEffect;
+use crate::Effect;
 
 use super::{
     basic::{basic_colour_dither, basic_mono_dither},
@@ -70,36 +70,56 @@ pub enum Algorithms<'a> {
     Bayer(usize, &'a [Srgb]),
 }
 
-impl ImageEffect<DynamicImage> for MonoAlgorithms {
-    fn apply(&self, image: DynamicImage) -> DynamicImage {
-        match self {
-            Self::Basic             => basic_mono_dither(image),
-            Self::FloydSteinberg    => floyd_steinberg::dither_1bit(image),
-            Self::JarvisJudiceNinke => jarvis_judice_ninke::dither_1bit(image),
-            Self::Stucki            => stucki::dither_1bit(image),
-            Self::Atkinson          => atkinson::dither_1bit(image),
-            Self::Burkes            => burkes::dither_1bit(image),
-            Self::Sierra            => sierra::dither_1bit(image),
-            Self::SierraTwoRow      => sierra::two_row::dither_1bit(image),
-            Self::SierraLite        => sierra::lite::dither_1bit(image),
-            Self::Bayer(n)  => bayer_mono_dither(image, *n),
+pub trait MonoDitherInput {
+    fn run_through(self, algorithm: &MonoAlgorithms) -> Self;
+}
+
+pub trait DitherInput {
+    fn run_through(self, algorithm: &Algorithms) -> Self;
+}
+
+impl MonoDitherInput for DynamicImage {
+    fn run_through(self, algorithm: &MonoAlgorithms) -> Self {
+        match algorithm {
+            MonoAlgorithms::Basic             => basic_mono_dither(self),
+            MonoAlgorithms::FloydSteinberg    => floyd_steinberg::dither_1bit(self),
+            MonoAlgorithms::JarvisJudiceNinke => jarvis_judice_ninke::dither_1bit(self),
+            MonoAlgorithms::Stucki            => stucki::dither_1bit(self),
+            MonoAlgorithms::Atkinson          => atkinson::dither_1bit(self),
+            MonoAlgorithms::Burkes            => burkes::dither_1bit(self),
+            MonoAlgorithms::Sierra            => sierra::dither_1bit(self),
+            MonoAlgorithms::SierraTwoRow      => sierra::two_row::dither_1bit(self),
+            MonoAlgorithms::SierraLite        => sierra::lite::dither_1bit(self),
+            MonoAlgorithms::Bayer(n)  => bayer_mono_dither(self, *n),
         }
     }
 }
 
-impl<'a> ImageEffect<DynamicImage> for Algorithms<'a> {
-    fn apply(&self, image: DynamicImage) -> DynamicImage {
-        match self {
-            Self::Basic(palette)                => basic_colour_dither(image, palette),
-            Self::FloydSteinberg(palette)       => floyd_steinberg::dither_rgb(image, palette),
-            Self::JarvisJudiceNinke(palette)    => jarvis_judice_ninke::dither_rgb(image, palette),
-            Self::Stucki(palette)               => stucki::dither_rgb(image, palette),
-            Self::Atkinson(palette)             => atkinson::dither_rgb(image, palette),
-            Self::Burkes(palette)               => burkes::dither_rgb(image, palette),
-            Self::Sierra(palette)               => sierra::dither_rgb(image, palette),
-            Self::SierraTwoRow(palette)         => sierra::two_row::dither_rgb(image, palette),
-            Self::SierraLite(palette)           => sierra::lite::dither_rgb(image, palette),
-            Self::Bayer(n, palette)     => bayer_dither(image, *n, palette),
+impl DitherInput for DynamicImage {
+    fn run_through(self, algorithm: &Algorithms) -> Self {
+        match algorithm {
+            Algorithms::Basic(palette)                => basic_colour_dither(self, palette),
+            Algorithms::FloydSteinberg(palette)       => floyd_steinberg::dither_rgb(self, palette),
+            Algorithms::JarvisJudiceNinke(palette)    => jarvis_judice_ninke::dither_rgb(self, palette),
+            Algorithms::Stucki(palette)               => stucki::dither_rgb(self, palette),
+            Algorithms::Atkinson(palette)             => atkinson::dither_rgb(self, palette),
+            Algorithms::Burkes(palette)               => burkes::dither_rgb(self, palette),
+            Algorithms::Sierra(palette)               => sierra::dither_rgb(self, palette),
+            Algorithms::SierraTwoRow(palette)         => sierra::two_row::dither_rgb(self, palette),
+            Algorithms::SierraLite(palette)           => sierra::lite::dither_rgb(self, palette),
+            Algorithms::Bayer(n, palette)     => bayer_dither(self, *n, palette),
         }
+    }
+}
+
+impl <I: MonoDitherInput> Effect<I> for MonoAlgorithms {
+    fn affect(&self, item: I) -> I {
+        item.run_through(self)
+    }
+}
+
+impl <'a, I: DitherInput> Effect<I> for Algorithms<'a> {
+    fn affect(&self, item: I) -> I {
+        item.run_through(self)
     }
 }
