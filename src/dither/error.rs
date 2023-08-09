@@ -100,16 +100,6 @@ pub fn error_propagate_through_pixels_rgb(
     }
 }
 
-macro_rules! error_prop_1bit_fn {
-    ($fn_name:ident, $matrix:expr, $portion_amnt:expr) => {
-        pub fn $fn_name(image: DynamicImage) -> DynamicImage {
-            let mut rgb8_image = image.into_rgb8();
-            error_propagate_through_pixels(&mut rgb8_image, $matrix, $portion_amnt);
-            DynamicImage::ImageRgb8(rgb8_image)
-        }
-    };
-}
-
 macro_rules! error_prop_rgb_fn {
     ($fn_name:ident, $matrix:expr, $portion_amnt:expr) => {
         pub fn $fn_name(image: DynamicImage, palette: &[Srgb]) -> DynamicImage {
@@ -129,7 +119,6 @@ macro_rules! error_prop_mod {
             use crate::{
                 dither::{
                     error::{
-                        error_propagate_through_pixels,
                         error_propagate_through_pixels_rgb
                     },
                 },
@@ -137,7 +126,6 @@ macro_rules! error_prop_mod {
 
             static PROPAGATION_MATRIX: &[(i8, i8, u8)] = &[$($matrix)*];
 
-            error_prop_1bit_fn!(dither_1bit, PROPAGATION_MATRIX, $portion_amnt);
             error_prop_rgb_fn!(dither_rgb, PROPAGATION_MATRIX, $portion_amnt);
         }
     };
@@ -190,7 +178,6 @@ pub mod sierra {
     use image::DynamicImage;
     use palette::Srgb;
     use crate::dither::error::{
-        error_propagate_through_pixels,
         error_propagate_through_pixels_rgb
     };
 
@@ -200,7 +187,6 @@ pub mod sierra {
                    (-1, 2, 2),(0, 2, 3),(1, 2, 2),
     ];
 
-    error_prop_1bit_fn!(dither_1bit, PROPAGATION_MATRIX, 32);
     error_prop_rgb_fn!(dither_rgb, PROPAGATION_MATRIX, 32);
 
     error_prop_mod!(

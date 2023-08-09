@@ -10,8 +10,8 @@
 //! This crate assumes that you are using the `image` crate for processing - as all these
 //! algorithms work specifically with the `DynamicImage` struct (for now).
 //!
-//! The *prelude* comes with nice re-exports of the algorithms under `MonoDither`, `Dither` and `Filter`
-//! - in addition to some traits.
+//! The *prelude* comes with nice re-exports of the algorithms under `Dither` and `Filter` - 
+//! in addition to some traits.
 //! 
 //! # Traits and Extensibility
 //! 
@@ -40,9 +40,8 @@
 //! 
 //! ## `...Input`
 //! 
-//! Currently there are three:
+//! Currently there are two:
 //! 
-//! - `dither::algorithm::MonoAlgorithmInput`
 //! - `dither::algorithm::AlgorithmInput`
 //! - `filter::algorithm::AlgorithmInput`
 //! 
@@ -84,17 +83,19 @@ pub mod utils;
 
 pub mod colour;
 
-/// Prelude for including the useful elements from the library - including traits and algorithms.
+/// Prelude for including the useful elements from the library - including algorithms, traits, and constants.
 pub mod prelude {
+    // algorithms
     pub use crate::dither::algorithms::Algorithms as Dither;
-    pub use crate::dither::algorithms::MonoAlgorithms as MonoDither;
     pub use crate::filter::algorithms::Algorithms as Filter;
-    // pub use crate::AdjustableImage;
+    
+    // traits
     pub use crate::Effect;
-
-    pub use crate::colour::colours::srgb as SrgbColour;
+    pub use crate::Affectable;
     pub use crate::colour::gradient::IntoGradient;
-    pub use crate::dither::error;
+
+    // constants
+    pub use crate::colour::colours::srgb as SrgbColour;
     pub use crate::colour::palettes;
 }
 
@@ -132,10 +133,10 @@ impl<T, E> Affectable<E> for T where E: Effect<T> {
 // }
 
 #[macro_export]
-/// Helps construct a gradient map from HSL values.
+/// Helps construct a gradient map from colours.
 ///
 /// You *could* construct the map yourself, however the purpose of this is mostly to
-/// provide an easily usable and *clean* way to generate a gradient map from HSL values.
+/// provide an easily usable and *clean* way to construct a gradient map.
 ///
 /// The following is an example usage of this macro:
 /// ```ignore
@@ -163,8 +164,8 @@ mod test {
     use palette::Srgb;
 
     use crate::{
-        colour::{colours::srgb as RGB, gradient::IntoGradient, palettes},
-        prelude::*,
+        colour::{colours::srgb as RGB, gradient::IntoGradient, utils::ONE_BIT},
+        prelude::{*, palettes::{WEB_SAFE, EIGHT_BIT}},
         utils::{image::load_image_from_url_with_max_dim, ImageFilterResult}, Affectable,
     };
 
@@ -182,10 +183,10 @@ mod test {
             RGB::GOLD.build_gradient_lch(5),
         ].concat();
 
-        mono(&image)?;
-        colour_websafe(&image)?; // takes a long time due to large palette
-        colour_eightbit(&image)?; // significantly faster
-        colour(&image, &palette, Some("-custom-palette"))?;
+        dither(&image, &ONE_BIT, Some("-mono"))?;
+        dither(&image, &WEB_SAFE, Some("-web-safe"))?;
+        dither(&image, &EIGHT_BIT, Some("-8-bit"))?;
+        dither(&image, &palette, Some("-custom-palette"))?;
 
         Ok(())
     }
@@ -244,71 +245,7 @@ mod test {
         Ok(())
     }
 
-    fn mono(image: &DynamicImage) -> ImageResult<()> {
-        image
-            .clone()
-            .apply(&MonoDither::Basic)
-            .save("data/dither/basic-mono.png")?;
-        image
-            .clone()
-            .apply(&MonoDither::FloydSteinberg)
-            .save("data/dither/floyd-steinberg-mono.png")?;
-        image
-            .clone()
-            .apply(&MonoDither::JarvisJudiceNinke)
-            .save("data/dither/jarvis-judice-ninke-mono.png")?;
-        image
-            .clone()
-            .apply(&MonoDither::Stucki)
-            .save("data/dither/stucki-mono.png")?;
-        image
-            .clone()
-            .apply(&MonoDither::Atkinson)
-            .save("data/dither/atkinson-mono.png")?;
-        image
-            .clone()
-            .apply(&MonoDither::Burkes)
-            .save("data/dither/burkes-mono.png")?;
-        image
-            .clone()
-            .apply(&MonoDither::Sierra)
-            .save("data/dither/sierra-mono.png")?;
-        image
-            .clone()
-            .apply(&MonoDither::SierraTwoRow)
-            .save("data/dither/sierra-two-row-mono.png")?;
-        image
-            .clone()
-            .apply(&MonoDither::SierraLite)
-            .save("data/dither/sierra-lite-mono.png")?;
-        image
-            .clone()
-            .apply(&MonoDither::Bayer(2))
-            .save("data/dither/bayer-2x2-mono.png")?;
-        image
-            .clone()
-            .apply(&MonoDither::Bayer(4))
-            .save("data/dither/bayer-4x4-mono.png")?;
-        image
-            .clone()
-            .apply(&MonoDither::Bayer(8))
-            .save("data/dither/bayer-8x8-mono.png")?;
-        image
-            .clone()
-            .apply(&MonoDither::Bayer(16))
-            .save("data/dither/bayer-16x16-mono.png")?;
-        Ok(())
-    }
-
-    fn colour_websafe(image: &DynamicImage) -> ImageResult<()> {
-        colour(image, palettes::WEB_SAFE.as_ref(), Some("-web-safe"))
-    }
-
-    fn colour_eightbit(image: &DynamicImage) -> ImageResult<()> {
-        colour(image, palettes::EIGHT_BIT.as_ref(), Some("-8-bit"))
-    }
-
-    fn colour(
+    fn dither(
         image: &DynamicImage,
         palette: &[Srgb],
         opt_postfix: Option<&str>,

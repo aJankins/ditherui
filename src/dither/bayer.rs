@@ -23,33 +23,6 @@ fn dither_matrix(n: usize) -> Array<f64, Dim<[usize; 2]>> {
     (1. / multiplier) * concatenate(Axis(1), &[first_col.view(), second_col.view()]).unwrap()
 }
 
-pub fn bayer_mono_dither(image: DynamicImage, dither_size: usize) -> DynamicImage {
-    // let mut rgb8_image = image.into_rgb8();
-    let matrix = dither_matrix(dither_size);
-    let mut rgb8_image = image.into_rgb8();
-
-    for (x, y, pixel) in rgb8_image.enumerate_pixels_mut() {
-        let xs = x as usize;
-        let ys = y as usize;
-
-        let mono = average(pixel.channels()) as u8;
-        let mapped_pixel = mono as f64
-            + (255.0
-                * (matrix
-                    .get((xs % dither_size, ys % dither_size))
-                    .unwrap_or(&0.0)
-                    - 0.5));
-
-        let threshold = if mapped_pixel > 128.0 { 255 } else { 0 };
-
-        pixel[0] = threshold as u8;
-        pixel[1] = threshold as u8;
-        pixel[2] = threshold as u8;
-    }
-
-    DynamicImage::ImageRgb8(rgb8_image)
-}
-
 pub fn bayer_dither(image: DynamicImage, dither_size: usize, palette: &[Srgb]) -> DynamicImage {
     // let mut rgb8_image = image.into_rgb8();
     let matrix = dither_matrix(dither_size);
