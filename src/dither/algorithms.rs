@@ -1,4 +1,4 @@
-use image::{DynamicImage, GenericImageView, ImageBuffer};
+use image::{DynamicImage, GenericImageView, ImageBuffer, Rgb};
 use palette::Srgb;
 
 use crate::{Effect, utils::numops::map_to_2d, EffectInput};
@@ -60,39 +60,31 @@ impl<'a> EffectInput<Dither<'a>> for RgbImageRepr {
     }
 }
 
+impl<'a> EffectInput<Dither<'a>> for ImageBuffer<Rgb<u8>, Vec<u8>> {
+    fn run_through(&self, effect: &Dither<'a>) -> Self {
+        let (xs, ys) = self.dimensions();
+        let (xs, ys) = (xs as usize, ys as usize);
+    
+        let mut img_matrix = vec![vec![[0_u8; 3]; xs]; ys];
+    
+        for (i, pixel) in self.pixels().into_iter().enumerate() {
+           let (x, y) = map_to_2d(i, xs);
+           img_matrix[y][x] = pixel.0;
+        }
+    
+        img_matrix = img_matrix.run_through(effect);
+
+        let ydim = img_matrix.len() as u32;
+        let xdim = img_matrix.get(0).map(|row| row.len()).unwrap_or(0) as u32;
+    
+        ImageBuffer::from_fn(xdim, ydim, |x, y| {
+            image::Rgb(img_matrix[y as usize][x as usize])
+        })
+    }
+}
+
 impl<'a> EffectInput<Dither<'a>> for DynamicImage {
     fn run_through(&self, algorithm: &Dither) -> Self {
-        let mut matrix = dynamic_image_to_2d_rgb_matrix(self);
-
-        matrix = matrix.run_through(algorithm);
-
-        rgb_matrix_to_dynamic_image(matrix)
+        DynamicImage::ImageRgb8(self.clone().into_rgb8().run_through(algorithm))
     }
-}
-
-pub fn dynamic_image_to_2d_rgb_matrix(img: &DynamicImage) -> RgbImageRepr {
-    let (xs, ys) = img.dimensions();
-    let (xs, ys) = (xs as usize, ys as usize);
-
-    let img = img.clone().into_rgb8();
-
-    let mut img_matrix = vec![vec![[0_u8; 3]; xs]; ys];
-
-    for (i, pixel) in img.pixels().into_iter().enumerate() {
-       let (x, y) = map_to_2d(i, xs);
-       img_matrix[y][x] = pixel.0;
-    }
-
-    img_matrix
-}
-
-pub fn rgb_matrix_to_dynamic_image(img: RgbImageRepr) -> DynamicImage {
-    let ydim = img.len() as u32;
-    let xdim = img.get(0).map(|row| row.len()).unwrap_or(0) as u32;
-
-    let img = ImageBuffer::from_fn(xdim, ydim, |x, y| {
-        image::Rgb(img[y as usize][x as usize])
-    });
-
-    DynamicImage::ImageRgb8(img)
 }

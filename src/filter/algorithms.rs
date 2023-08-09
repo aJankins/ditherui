@@ -1,4 +1,4 @@
-use image::DynamicImage;
+use image::{DynamicImage, ImageBuffer, Rgb};
 use palette::Srgb;
 
 use crate::{Effect, EffectInput};
@@ -50,18 +50,6 @@ pub enum Filter<'a> {
     QuantizeHue(&'a [f32]),
 }
 
-impl<'a> EffectInput<Filter<'a>> for DynamicImage {
-    fn run_through(&self, algorithm: &Filter) -> Self {
-        let mut image = (self.clone()).into_rgb8();
-
-        for (_, _, pixel) in image.enumerate_pixels_mut() {
-            pixel.0 = pixel.0.run_through(algorithm)
-        }
-
-        DynamicImage::ImageRgb8(image)
-    }
-}
-
 impl<'a> EffectInput<Filter<'a>> for [u8; 3] {
     fn run_through(&self, algorithm: &Filter) -> Self {
         let clone = self.clone();
@@ -73,5 +61,21 @@ impl<'a> EffectInput<Filter<'a>> for [u8; 3] {
             Filter::QuantizeHue(hues) => quantize_hue(clone, hues),
             Filter::GradientMap(gradient) => gradient_map(clone, gradient).map_or(clone, |colour| colour.into_format().into()),
         }
+    }
+}
+
+impl<'a> EffectInput<Filter<'a>> for ImageBuffer<Rgb<u8>, Vec<u8>> {
+    fn run_through(&self, effect: &Filter<'a>) -> Self {
+        let mut output = self.clone();
+        for (_, _, pixel) in output.enumerate_pixels_mut() {
+            pixel.0 = pixel.0.run_through(effect)
+        }
+        output
+    }
+}
+
+impl<'a> EffectInput<Filter<'a>> for DynamicImage {
+    fn run_through(&self, effect: &Filter) -> Self {
+        DynamicImage::ImageRgb8(self.clone().into_rgb8().run_through(effect))
     }
 }
