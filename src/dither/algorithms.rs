@@ -12,6 +12,7 @@ use super::{
 };
 
 /// 1-bit dithering algorithms.
+#[deprecated = "Use Algorithms with the ONE_BIT palette instead."]
 pub enum MonoAlgorithms {
     /// The basic 1-bit error propagation method.
     ///

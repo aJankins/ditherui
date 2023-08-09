@@ -56,13 +56,25 @@ pub trait FilterInput {
 
 impl FilterInput for DynamicImage {
     fn run_through(self, algorithm: &Algorithms) -> Self {
+        let mut image = self.into_rgb8();
+
+        for (_, _, pixel) in image.enumerate_pixels_mut() {
+            pixel.0 = pixel.0.run_through(algorithm)
+        }
+
+        DynamicImage::ImageRgb8(image)
+    }
+}
+
+impl FilterInput for [u8; 3] {
+    fn run_through(self, algorithm: &Algorithms) -> Self {
         match algorithm {
-            Algorithms::RotateHue(degrees) => dynamic_image_shift_hue(self, *degrees),
-            Algorithms::Contrast(amount) => dynamic_image_contrast(self, *amount),
-            Algorithms::Brighten(amount) => dynamic_image_brighten(self, *amount),
-            Algorithms::Saturate(amount) => dynamic_image_saturate(self, *amount),
-            Algorithms::QuantizeHue(hues) => dynamic_image_quantize_hue(self, hues),
-            Algorithms::GradientMap(gradient) => dynamic_image_gradient_map(self, gradient),
+            Algorithms::RotateHue(degrees) => shift_hue(self, *degrees),
+            Algorithms::Contrast(amount) => contrast(self, *amount),
+            Algorithms::Brighten(amount) => brighten(self, *amount),
+            Algorithms::Saturate(amount) => saturate(self, *amount),
+            Algorithms::QuantizeHue(hues) => quantize_hue(self, hues),
+            Algorithms::GradientMap(gradient) => gradient_map(self, gradient).map_or(self, |colour| colour.into_format().into()),
         }
     }
 }
@@ -71,42 +83,4 @@ impl<'a, I: FilterInput> Effect<I> for Algorithms<'a> {
     fn affect(&self, item: I) -> I {
         item.run_through(self) 
     }
-}
-
-macro_rules! dynamic_image_effect {
-    ($fn_name:ident($($param:ident: $type:ty),+) -> $effect_fn:ident) => {
-        fn $fn_name (image: DynamicImage, $($param: $type),+) -> DynamicImage {
-            let mut image = image.into_rgb8();
-
-            for (_, _, pixel) in image.enumerate_pixels_mut() {
-                pixel.0 = $effect_fn (pixel.0, $($param),+);
-            }
-
-            DynamicImage::ImageRgb8(image)
-        }
-    };
-}
-
-// dynamic image effects
-
-dynamic_image_effect!(dynamic_image_contrast(amount: f32) -> contrast);
-dynamic_image_effect!(dynamic_image_quantize_hue(hues: &[f32]) -> quantize_hue);
-dynamic_image_effect!(dynamic_image_brighten(amount: f32) -> brighten);
-dynamic_image_effect!(dynamic_image_saturate(amount: f32) -> saturate);
-dynamic_image_effect!(dynamic_image_shift_hue(degrees: f32) -> shift_hue);
-
-fn dynamic_image_gradient_map(image: DynamicImage, gradient: &[(Srgb, f32)]) -> DynamicImage {
-    let mut image = image.into_rgb8();
-
-    for (_, _, pixel) in image.enumerate_pixels_mut() {
-        let rgb = gradient_map(pixel.0, gradient);
-
-        if let Some(rgb) = rgb {
-            pixel.0 = rgb.into_format().into();
-        }
-
-
-    }
-
-    DynamicImage::ImageRgb8(image)
 }

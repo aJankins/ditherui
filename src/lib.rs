@@ -35,7 +35,7 @@
 //! This is more of a Rust limitation, but I wanted to explain the reasoning real quick incase anyone is curious
 //! _(or incase there's a not-hacky workaround I don't know about)_
 //! 
-//! In any case - this is currently only implemented for `DynamicImage`. But what if you wanted to implement this
+//! In any case - this is currently only implemented for `DynamicImage` and `[u8; 3]`. But what if you wanted to implement this
 //! for another type - say a different image representation? That's where the `Input` traits come in.
 //! 
 //! ## `...Input`
@@ -61,6 +61,17 @@
 //! be bypassed by implementing `Effect<T>` directly.
 //! 
 //! In any case, the `Input` option is always available to you.
+//! 
+//! ## Tips
+//! 
+//! ### Implementing `...Input`
+//! _Because_ `[u8; 3]` is a valid `FilterInput`, anything that can be reduced to a series of
+//! `RGB` values will have the actual effect logic readymade.
+//! 
+//! This _doesn't_ apply for `DitherInput` because most algorithms require various other pixels from
+//! the image. I'm hoping to improve this process in some way - like extracting out the pixel selection,
+//! having a good intermediate representation, or even pulling `Bayer` as a separate algorithm since _that_
+//! one only requires the current pixel.
 
 /// Contains multiple algorithms for dithering an image - both in 1-bit and RGB variants.
 pub mod dither;
