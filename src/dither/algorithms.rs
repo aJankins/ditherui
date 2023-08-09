@@ -1,7 +1,7 @@
 use image::{DynamicImage, GenericImageView, ImageBuffer};
 use palette::Srgb;
 
-use crate::{Effect, utils::numops::map_to_2d};
+use crate::{Effect, utils::numops::map_to_2d, EffectInput};
 
 use super::{
     basic::basic_dither,
@@ -13,7 +13,7 @@ use super::{
 
 /// Dithering algorithms. Each one accepts a *palette* - aka a list of `RgbPixel`s that colours should
 /// be quantized to.
-pub enum Algorithms<'a> {
+pub enum Dither<'a> {
     /// The basic error propagation method.
     ///
     /// Results in the worst quality output, but included for curiosity's sake
@@ -41,34 +41,31 @@ pub enum Algorithms<'a> {
     Bayer(usize, &'a [Srgb]),
 }
 
-pub trait DitherInput {
-    fn run_through(self, algorithm: &Algorithms) -> Self;
-}
-
-impl DitherInput for DynamicImage {
-    fn run_through(self, algorithm: &Algorithms) -> Self {
-        let mut matrix = dynamic_image_to_2d_rgb_matrix(self);
-
+impl<'a> EffectInput<Dither<'a>> for RgbImageRepr {
+    fn run_through(mut self, algorithm: &Dither) -> Self {
         match algorithm {
-            Algorithms::Basic(palette)                => basic_dither(&mut matrix, palette),
-            Algorithms::FloydSteinberg(palette)       => floyd_steinberg::dither_rgb(&mut matrix, palette),
-            Algorithms::JarvisJudiceNinke(palette)    => jarvis_judice_ninke::dither_rgb(&mut matrix, palette),
-            Algorithms::Stucki(palette)               => stucki::dither_rgb(&mut matrix, palette),
-            Algorithms::Atkinson(palette)             => atkinson::dither_rgb(&mut matrix, palette),
-            Algorithms::Burkes(palette)               => burkes::dither_rgb(&mut matrix, palette),
-            Algorithms::Sierra(palette)               => sierra::dither_rgb(&mut matrix, palette),
-            Algorithms::SierraTwoRow(palette)         => sierra::two_row::dither_rgb(&mut matrix, palette),
-            Algorithms::SierraLite(palette)           => sierra::lite::dither_rgb(&mut matrix, palette),
-            Algorithms::Bayer(n, palette)     => bayer_dither(&mut matrix, *n, palette),
+            Dither::Basic(palette)                => basic_dither(&mut self, palette),
+            Dither::FloydSteinberg(palette)       => floyd_steinberg::dither_rgb(&mut self, palette),
+            Dither::JarvisJudiceNinke(palette)    => jarvis_judice_ninke::dither_rgb(&mut self, palette),
+            Dither::Stucki(palette)               => stucki::dither_rgb(&mut self, palette),
+            Dither::Atkinson(palette)             => atkinson::dither_rgb(&mut self, palette),
+            Dither::Burkes(palette)               => burkes::dither_rgb(&mut self, palette),
+            Dither::Sierra(palette)               => sierra::dither_rgb(&mut self, palette),
+            Dither::SierraTwoRow(palette)         => sierra::two_row::dither_rgb(&mut self, palette),
+            Dither::SierraLite(palette)           => sierra::lite::dither_rgb(&mut self, palette),
+            Dither::Bayer(n, palette)     => bayer_dither(&mut self, *n, palette),
         }
-
-        rgb_matrix_to_dynamic_image(matrix)
+        self
     }
 }
 
-impl <'a, I: DitherInput> Effect<I> for Algorithms<'a> {
-    fn affect(&self, item: I) -> I {
-        item.run_through(self)
+impl<'a> EffectInput<Dither<'a>> for DynamicImage {
+    fn run_through(self, algorithm: &Dither) -> Self {
+        let mut matrix = dynamic_image_to_2d_rgb_matrix(self);
+
+        matrix = matrix.run_through(algorithm);
+
+        rgb_matrix_to_dynamic_image(matrix)
     }
 }
 

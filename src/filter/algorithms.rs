@@ -1,14 +1,14 @@
 use image::DynamicImage;
 use palette::Srgb;
 
-use crate::Effect;
+use crate::{Effect, EffectInput};
 
 use super::raw::{contrast, gradient_map, quantize_hue, brighten, saturate, shift_hue};
 
 pub const CHROMA_BOUND: f32 = 128.0;
 
 /// Algorithms for applying filters to an image.
-pub enum Algorithms<'a> {
+pub enum Filter<'a> {
     /// Rotates the hue based on the amount of degrees passed.
     RotateHue(f32),
     /// Modifies the contrast of the image.
@@ -50,12 +50,8 @@ pub enum Algorithms<'a> {
     QuantizeHue(&'a [f32]),
 }
 
-pub trait FilterInput {
-    fn run_through(self, algorithm: &Algorithms) -> Self;
-}
-
-impl FilterInput for DynamicImage {
-    fn run_through(self, algorithm: &Algorithms) -> Self {
+impl<'a> EffectInput<Filter<'a>> for DynamicImage {
+    fn run_through(self, algorithm: &Filter) -> Self {
         let mut image = self.into_rgb8();
 
         for (_, _, pixel) in image.enumerate_pixels_mut() {
@@ -66,21 +62,15 @@ impl FilterInput for DynamicImage {
     }
 }
 
-impl FilterInput for [u8; 3] {
-    fn run_through(self, algorithm: &Algorithms) -> Self {
+impl<'a> EffectInput<Filter<'a>> for [u8; 3] {
+    fn run_through(self, algorithm: &Filter) -> Self {
         match algorithm {
-            Algorithms::RotateHue(degrees) => shift_hue(self, *degrees),
-            Algorithms::Contrast(amount) => contrast(self, *amount),
-            Algorithms::Brighten(amount) => brighten(self, *amount),
-            Algorithms::Saturate(amount) => saturate(self, *amount),
-            Algorithms::QuantizeHue(hues) => quantize_hue(self, hues),
-            Algorithms::GradientMap(gradient) => gradient_map(self, gradient).map_or(self, |colour| colour.into_format().into()),
+            Filter::RotateHue(degrees) => shift_hue(self, *degrees),
+            Filter::Contrast(amount) => contrast(self, *amount),
+            Filter::Brighten(amount) => brighten(self, *amount),
+            Filter::Saturate(amount) => saturate(self, *amount),
+            Filter::QuantizeHue(hues) => quantize_hue(self, hues),
+            Filter::GradientMap(gradient) => gradient_map(self, gradient).map_or(self, |colour| colour.into_format().into()),
         }
-    }
-}
-
-impl<'a, I: FilterInput> Effect<I> for Algorithms<'a> {
-    fn affect(&self, item: I) -> I {
-        item.run_through(self) 
     }
 }

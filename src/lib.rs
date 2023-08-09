@@ -2,64 +2,55 @@
 //!
 //! Currently there's two classes of effects:
 //!
-//! 1. **Dithering** - Limiting the colour palette of a given image while still
+//! 1. [**Dithering**](./dither/algorithms/enum.Dither.html) - Limiting the colour palette of a given image while still
 //!    retaining more detail than a purely quantized approach would.
-//! 2. **Filters** - Some more common effects applied on an image, such as brightness,
+//! 2. [**Filtering**](./filter/algorithms/enum.Filter.html) - Some more common effects applied on an image, such as brightness,
 //!    contrast, gradient mapping, and more.
 //!
 //! This crate assumes that you are using the `image` crate for processing - as all these
 //! algorithms work specifically with the `DynamicImage` struct (for now).
 //!
-//! The *prelude* comes with nice re-exports of the algorithms under `Dither` and `Filter` - 
-//! in addition to some traits.
+//! The *prelude* is useful for importing some common functionality, like the algorithms themselves
+//! alongside some traits.
 //! 
 //! # Traits and Extensibility
 //! 
-//! ## Effect<T> and Affectable<E>
+//! ## `Effect<T>` and `Affectable<E>`
 //! 
 //! Think of these as opposites - like `From<T>` and `Into<T>`. The first defines an effect that can be
 //! applied on `T`, whereas the second defines something that can have an effect `E` applied to it.
 //! 
-//! If you'd like to extend this library with your own effect, implement `Effect<T>` on it - where `T` is
-//! what it can be applied on. Once you do this, `T` will _automatically_ implement `Affectable<E>`, where
+//! If you'd like to extend this library with your own effect, implement [`Effect<T>`](./trait.Effect.html) on it - where `T` is
+//! what it can be applied on. Once you do this, `T` will _automatically_ implement [`Affectable<E>`](./trait.Affectable.html), where
 //! `E` is your effect.
 //! 
 //! Note that this doesn't go the opposite way - applying `Affectable<E>` on something won't implement
-//! `Effect<T>` due to conflicting implementation issues. To explain this, let's assume this _did_ work...
+//! `Effect<T>` due to conflicting implementation issues. However, if you _would_ like to define a new type
+//! to apply an effect on, that's where [`EffectInput<T>`](./trait.EffectInput.html) comes in.
 //! 
-//! - User implements `Affectable<E>` on T.
-//! - `E` auto-implements `Effect<T>`...
-//! - ...which then auto-implements `Affectable<E>` again.
+//! ## `EffectInput<T>`
 //! 
-//! In the above case, see how your implementation immediately starts conflicting with the auto-implementation.
-//! This is more of a Rust limitation, but I wanted to explain the reasoning real quick incase anyone is curious
-//! _(or incase there's a not-hacky workaround I don't know about)_
+//! This trait defines an _input_ to an effect. For example, implementing `EffectInput<Filter<'a>>` on T means
+//! that `Filter<'a>` accepts `T` as input. As a result, you also get the following implementations for free:
 //! 
-//! In any case - this is currently only implemented for `DynamicImage` and `[u8; 3]`. But what if you wanted to implement this
-//! for another type - say a different image representation? That's where the `Input` traits come in.
+//! - `impl Effect<T> for Filter<'a>`
+//! - `impl Affectable<Filter<'a>> for T`
 //! 
-//! ## `...Input`
+//! As you can see, `EffectInput<T>` is almost identical to `Affectable<T>`. The only difference being that you can 
+//! _actually_ implement it without conflicting implementations.
 //! 
-//! Currently there are two:
-//! 
-//! - `dither::algorithm::AlgorithmInput`
-//! - `filter::algorithm::AlgorithmInput`
-//! 
-//! To support other representations, simply implement the respective `Input` trait for them. Once
-//! doing so, you'll automatically gain an `Effect<T>` and `Affectable<E>` implementation. To see why,
-//! here's the signature of one of these traits:
+//! So for example, if you'd like to support _dithering_ for `MyType`, you can do this:
 //! 
 //! ```ignore
-//! impl<'a, I: FilterInput> Effect<I> for Algorithms<'a>
+//! impl<'a, I: EffectInput<Dither<'a>> for MyType { /* ... */ }
 //! ```
 //! 
-//! As you can see, `Effect<I>` is implemented for `Algorithms` - where `I` is _any valid input_.
+//! ...at which point you can call `.apply` on an instance of `MyType` and pass in a `Dither`.
 //! 
-//! This is mostly here as I haven't tested whether `impl Effect<YourType> for ExternalType` would
-//! work, since your type is wrapped in generics. If this _does_ work then this complication could
-//! be bypassed by implementing `Effect<T>` directly.
-//! 
-//! In any case, the `Input` option is always available to you.
+//! ## Summary
+//! - If you want to add an effect `E` which works with an image `I`, implement `Effect<I>` for `E`.
+//! - If you want to add an image `I` that works with an effect `E`, implement `EffectInput<E>` for `I`.
+//!   - ...which will automatically implement `Effect<E>` for `I` as well.
 //! 
 //! ## Tips
 //! 
@@ -67,12 +58,13 @@
 //! _Because_ `[u8; 3]` is a valid `FilterInput`, anything that can be reduced to a series of
 //! `RGB` values will have the actual effect logic readymade.
 //! 
-//! This _doesn't_ apply for `DitherInput` because most algorithms require various other pixels from
-//! the image. I'm hoping to improve this process in some way - like extracting out the pixel selection,
-//! having a good intermediate representation, or even pulling `Bayer` as a separate algorithm since _that_
-//! one only requires the current pixel.
-
-/// Contains multiple algorithms for dithering an image - both in 1-bit and RGB variants.
+//! The same applies for `DitherInput`, however it's more complicated because dithering requires
+//! a more complicated input. Specifically, a _2d matrix_ of RGB values (`[u8; 3]`). In other words
+//! you'll need to convert your type into a _2d matrix_ first (`Vec<Vec<[u8; 3]>>`) - which already
+//! implements `DitherInput`.
+//! 
+//! To see examples for this, check out the implementations of `FilterInput` and `DitherInput` on
+//! `DynamicImage`.
 pub mod dither;
 
 /// Filters that can be applied to the image - such as brightness, contrast, and more.
@@ -86,8 +78,8 @@ pub mod colour;
 /// Prelude for including the useful elements from the library - including algorithms, traits, and constants.
 pub mod prelude {
     // algorithms
-    pub use crate::dither::algorithms::Algorithms as Dither;
-    pub use crate::filter::algorithms::Algorithms as Filter;
+    pub use crate::dither::Dither as Dither;
+    pub use crate::filter::Filter as Filter;
     
     // traits
     pub use crate::Effect;
@@ -97,6 +89,16 @@ pub mod prelude {
     // constants
     pub use crate::colour::colours::srgb as SrgbColour;
     pub use crate::colour::palettes;
+}
+
+pub trait EffectInput<T> {
+    fn run_through(self, effect: &T) -> Self;
+}
+
+impl<T, I: EffectInput<T>> Effect<I> for T {
+    fn affect(&self, item: I) -> I {
+        item.run_through(self)
+    }
 }
 
 /// Defines an effect that can be applied onto `T`.
