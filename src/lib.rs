@@ -54,16 +54,16 @@
 //! 
 //! ## Tips
 //! 
-//! ### Implementing `...Input`
-//! _Because_ `[u8; 3]` is a valid `FilterInput`, anything that can be reduced to a series of
+//! ### Implementing `EffectInput` for existing effects
+//! _Because_ `[u8; 3]` is a valid `EffectInput<Filter>`, anything that can be reduced to a series of
 //! `RGB` values will have the actual effect logic readymade.
 //! 
-//! The same applies for `DitherInput`, however it's more complicated because dithering requires
+//! The same applies for `EffectInput<Dither>`, however it's more complicated because dithering requires
 //! a more complicated input. Specifically, a _2d matrix_ of RGB values (`[u8; 3]`). In other words
 //! you'll need to convert your type into a _2d matrix_ first (`Vec<Vec<[u8; 3]>>`) - which already
-//! implements `DitherInput`.
+//! implements `EffectInput<Dither>`.
 //! 
-//! To see examples for this, check out the implementations of `FilterInput` and `DitherInput` on
+//! To see examples for this, check out the implementations of `EffectInput<Dither>` and `EffectInput<Filter>` on
 //! `DynamicImage`.
 pub mod dither;
 
@@ -73,17 +73,19 @@ pub mod filter;
 /// Utilities. Mostly just for the test cases - will probably be removed.
 pub mod utils;
 
+/// Colour related logic, such as distance functions, palettes, gradient generation, etc.
 pub mod colour;
 
 /// Prelude for including the useful elements from the library - including algorithms, traits, and constants.
 pub mod prelude {
     // algorithms
-    pub use crate::dither::Dither as Dither;
-    pub use crate::filter::Filter as Filter;
+    pub use crate::dither::Dither;
+    pub use crate::filter::Filter;
     
     // traits
     pub use crate::Effect;
     pub use crate::Affectable;
+    pub use crate::EffectInput;
     pub use crate::colour::gradient::IntoGradient;
 
     // constants
@@ -91,7 +93,22 @@ pub mod prelude {
     pub use crate::colour::palettes;
 }
 
+/// Defines an effect that can be applied onto `T`.
+/// 
+/// Doing this will also implement `Affectable<E>` for `T` - where
+/// `E` is the `Effect` you're implementing this on.
+pub trait Effect<T> {
+    /// Affects `T` using `self`.
+    fn affect(&self, item: T) -> T;
+}
+
+/// Defines an _input_ `I` for the effect `T`.
+/// 
+/// Mostly useful because implementing this auto-implements:
+/// - `Effect<I>` for `T`
+/// - `Affectable<T>` for `I`
 pub trait EffectInput<T> {
+    /// Runs the input (`self`) through the `effect`.
     fn run_through(self, effect: &T) -> Self;
 }
 
@@ -101,19 +118,12 @@ impl<T, I: EffectInput<T>> Effect<I> for T {
     }
 }
 
-/// Defines an effect that can be applied onto `T`.
-/// 
-/// Doing this will also implement `Affectable<E>` for `T` - where
-/// `E` is the `Effect` you're implementing this on.
-pub trait Effect<T> {
-    fn affect(&self, item: T) -> T;
-}
-
 /// Defines something that can have an effect applied to it.
 /// 
 /// It doesn't necessarily need to be implemented - if `Effect<T>` is implemented on `E`,
 /// then `T` will automatically implement `Affectable<E>`.
 pub trait Affectable<E> {
+    /// Applies the `effect` onto `self`.
     fn apply(self, effect: &E) -> Self;
 }
 
