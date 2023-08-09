@@ -109,7 +109,7 @@ pub trait Effect<T> {
 /// - `Affectable<T>` for `I`
 pub trait EffectInput<T> {
     /// Runs the input (`self`) through the `effect`.
-    fn run_through(self, effect: &T) -> Self;
+    fn run_through(&self, effect: &T) -> Self;
 }
 
 impl<T, I: EffectInput<T>> Effect<I> for T {

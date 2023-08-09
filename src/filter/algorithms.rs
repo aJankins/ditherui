@@ -51,8 +51,8 @@ pub enum Filter<'a> {
 }
 
 impl<'a> EffectInput<Filter<'a>> for DynamicImage {
-    fn run_through(self, algorithm: &Filter) -> Self {
-        let mut image = self.into_rgb8();
+    fn run_through(&self, algorithm: &Filter) -> Self {
+        let mut image = (self.clone()).into_rgb8();
 
         for (_, _, pixel) in image.enumerate_pixels_mut() {
             pixel.0 = pixel.0.run_through(algorithm)
@@ -63,14 +63,15 @@ impl<'a> EffectInput<Filter<'a>> for DynamicImage {
 }
 
 impl<'a> EffectInput<Filter<'a>> for [u8; 3] {
-    fn run_through(self, algorithm: &Filter) -> Self {
+    fn run_through(&self, algorithm: &Filter) -> Self {
+        let clone = self.clone();
         match algorithm {
-            Filter::RotateHue(degrees) => shift_hue(self, *degrees),
-            Filter::Contrast(amount) => contrast(self, *amount),
-            Filter::Brighten(amount) => brighten(self, *amount),
-            Filter::Saturate(amount) => saturate(self, *amount),
-            Filter::QuantizeHue(hues) => quantize_hue(self, hues),
-            Filter::GradientMap(gradient) => gradient_map(self, gradient).map_or(self, |colour| colour.into_format().into()),
+            Filter::RotateHue(degrees) => shift_hue(clone, *degrees),
+            Filter::Contrast(amount) => contrast(clone, *amount),
+            Filter::Brighten(amount) => brighten(clone, *amount),
+            Filter::Saturate(amount) => saturate(clone, *amount),
+            Filter::QuantizeHue(hues) => quantize_hue(clone, hues),
+            Filter::GradientMap(gradient) => gradient_map(clone, gradient).map_or(clone, |colour| colour.into_format().into()),
         }
     }
 }
