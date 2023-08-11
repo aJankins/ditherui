@@ -133,17 +133,6 @@ impl<T, E> Affectable<E> for T where E: Effect<T> {
     }
 }
 
-// /// Allows the implemented struct to use `.apply` directly.
-// pub trait AdjustableImage {
-//     fn apply(self, effect: impl ImageEffect<Self>) -> Self;
-// }
-
-// impl AdjustableImage for DynamicImage {
-//     fn apply(self, effect: impl ImageEffect<Self>) -> Self {
-//         effect.apply(self)
-//     }
-// }
-
 #[macro_export]
 /// Helps construct a gradient map from colours.
 ///
