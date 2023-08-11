@@ -1,4 +1,4 @@
-use image::{DynamicImage, ImageBuffer, Rgb};
+use image::{DynamicImage, ImageBuffer, Rgb, Frame, Rgba};
 use palette::Srgb;
 
 use crate::{Effect, EffectInput};
@@ -50,6 +50,7 @@ pub enum Filter<'a> {
     QuantizeHue(&'a [f32]),
 }
 
+// rgb pixel
 impl<'a> EffectInput<Filter<'a>> for [u8; 3] {
     fn run_through(&self, algorithm: &Filter) -> Self {
         let clone = self.clone();
@@ -64,7 +65,28 @@ impl<'a> EffectInput<Filter<'a>> for [u8; 3] {
     }
 }
 
+// rgba pixel
+impl<'a> EffectInput<Filter<'a>> for [u8; 4] {
+    fn run_through(&self, algorithm: &Filter) -> Self {
+        let [r, g, b, a] = self;
+
+        let [r, g, b] = [*r, *g, *b].run_through(algorithm);
+
+        [r, g, b, *a]
+    }
+}
+
 impl<'a> EffectInput<Filter<'a>> for ImageBuffer<Rgb<u8>, Vec<u8>> {
+    fn run_through(&self, effect: &Filter<'a>) -> Self {
+        let mut output = self.clone();
+        for (_, _, pixel) in output.enumerate_pixels_mut() {
+            pixel.0 = pixel.0.run_through(effect)
+        }
+        output
+    }
+}
+
+impl<'a> EffectInput<Filter<'a>> for ImageBuffer<Rgba<u8>, Vec<u8>> {
     fn run_through(&self, effect: &Filter<'a>) -> Self {
         let mut output = self.clone();
         for (_, _, pixel) in output.enumerate_pixels_mut() {
@@ -76,6 +98,25 @@ impl<'a> EffectInput<Filter<'a>> for ImageBuffer<Rgb<u8>, Vec<u8>> {
 
 impl<'a> EffectInput<Filter<'a>> for DynamicImage {
     fn run_through(&self, effect: &Filter) -> Self {
-        DynamicImage::ImageRgb8(self.clone().into_rgb8().run_through(effect))
+        match self {
+            DynamicImage::ImageRgb8(img) 
+                => DynamicImage::from(img.run_through(effect)),
+
+            DynamicImage::ImageRgba8(img) 
+                => DynamicImage::from(img.run_through(effect)),
+
+            _ => DynamicImage::ImageRgb8(self.clone().into_rgb8().run_through(effect))
+        }
+    }
+}
+
+impl<'a> EffectInput<Filter<'a>> for Frame {
+    fn run_through(&self, effect: &Filter<'a>) -> Self {
+        let left = self.left();
+        let top = self.top();
+        let delay = self.delay();
+
+        let new_buf = self.buffer().run_through(effect);
+        Frame::from_parts(new_buf, left, top, delay)
     }
 }

@@ -7,6 +7,7 @@ use crate::{
 };
 
 pub type RgbImageRepr = Vec<Vec<[u8; 3]>>;
+pub type RgbaImageRepr = Vec<Vec<[u8; 4]>>;
 
 pub fn error_propagate_through_pixels_rgb(
     // image: &mut ImageBuffer<Rgb<u8>, Vec<u8>>,
