@@ -62,8 +62,8 @@ impl<'a> EffectInput<Dither<'a>> for RgbImageRepr {
 
 impl<'a> EffectInput<Dither<'a>> for RgbaImageRepr {
     fn run_through(&self, algorithm: &Dither) -> Self {
-        let xs = self.len();
-        let ys = self.get(0).map_or(0, |row| row.len());
+        let ys = self.len();
+        let xs = self.get(0).map_or(0, |row| row.len());
 
         if xs == 0 || ys == 0 {
             return self.clone();
