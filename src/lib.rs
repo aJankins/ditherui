@@ -171,7 +171,7 @@ mod test {
     };
 
     fn get_image() -> ImageFilterResult<DynamicImage> {
-        load_image_from_url_with_max_dim("https://static.vecteezy.com/system/resources/previews/010/174/972/original/simple-sunny-day-cloud-image-realistic-cloud-on-a-transparent-background-cloud-on-the-sky-free-png.png", 1080)
+        load_image_from_url_with_max_dim("https://cdn.britannica.com/61/234061-050-6D985ED2/Carina-Nebula-Cosmic-Cliffs-NGC-3324-James-Webb-Space-Telescope-NIRCam.jpg", 1080)
     }
 
     #[test]
@@ -242,6 +242,16 @@ mod test {
             .clone()
             .apply(&Filter::QuantizeHue(&hue_palette))
             .save("data/colour/quantize-hue.png")?;
+
+        image
+            .clone()
+            .apply(&Filter::MultiplyHue(4.0))
+            .save("data/colour/multiply-hue.4.0.png")?;
+
+        image
+            .clone()
+            .apply(&Filter::MultiplyHue(12.0))
+            .save("data/colour/multiply-hue.12.0.png")?;
 
         Ok(())
     }

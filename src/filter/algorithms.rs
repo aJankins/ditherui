@@ -3,7 +3,7 @@ use palette::Srgb;
 
 use crate::{Effect, EffectInput};
 
-use super::raw::{contrast, gradient_map, quantize_hue, brighten, saturate, shift_hue};
+use super::raw::{contrast, gradient_map, quantize_hue, brighten, saturate, shift_hue, multiply_hue};
 
 pub const CHROMA_BOUND: f32 = 128.0;
 
@@ -48,6 +48,8 @@ pub enum Filter<'a> {
     /// This *only* changes the hue - useful for defining a colour
     /// scheme without losing luminance/saturation detail.
     QuantizeHue(&'a [f32]),
+    /// Multiplies the hue of each pixel by the factor passed.
+    MultiplyHue(f32),
 }
 
 // rgb pixel
@@ -61,6 +63,7 @@ impl<'a> EffectInput<Filter<'a>> for [u8; 3] {
             Filter::Saturate(amount) => saturate(clone, *amount),
             Filter::QuantizeHue(hues) => quantize_hue(clone, hues),
             Filter::GradientMap(gradient) => gradient_map(clone, gradient).map_or(clone, |colour| colour.into_format().into()),
+            Filter::MultiplyHue(factor) => multiply_hue(clone, *factor),
         }
     }
 }
