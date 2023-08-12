@@ -65,6 +65,8 @@ impl<'a> EffectInput<Dither<'a>> for RgbaImageRepr {
         let ys = self.len();
         let xs = self.get(0).map_or(0, |row| row.len());
 
+        // println!("Size of image? ({:?})", (xs, ys));
+
         if xs == 0 || ys == 0 {
             return self.clone();
         }
@@ -74,6 +76,12 @@ impl<'a> EffectInput<Dither<'a>> for RgbaImageRepr {
         let mut alpha_values = vec![vec![0_u8; xs]; ys];
         // prepare output
         let mut actual_img = vec![vec![[0_u8; 4]; xs]; ys];
+
+        // {
+        //     let ys_s = rgb_img.len();
+        //     let xs_s = rgb_img.get(0).map_or(0, |row| row.len());
+        //     println!("Size of constructed image? ({:?})", (xs_s, ys_s));
+        // }
 
         for y in 0..ys {
             for x in 0..xs {
