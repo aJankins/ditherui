@@ -146,10 +146,22 @@ impl<'a> EffectInput<Dither<'a>> for ImageBuffer<Rgba<u8>, Vec<u8>> {
            img_matrix[y][x] = pixel.0;
         }
     
+        // {
+        //     let ys_s = img_matrix.len();
+        //     let xs_s = img_matrix.get(0).map_or(0, |row| row.len());
+        //     println!("Size of image pre-dither? ({:?})", (xs_s, ys_s));
+        // }
         img_matrix = img_matrix.run_through(effect);
+        // {
+        //     let ys_s = img_matrix.len();
+        //     let xs_s = img_matrix.get(0).map_or(0, |row| row.len());
+        //     println!("Size of image post-dither? ({:?})", (xs_s, ys_s));
+        // }
 
         let ydim = img_matrix.len() as u32;
         let xdim = img_matrix.get(0).map(|row| row.len()).unwrap_or(0) as u32;
+
+        // println!("--- xdim: {xdim}, ydim: {ydim} ---");
     
         ImageBuffer::from_fn(xdim, ydim, |x, y| {
             image::Rgba(img_matrix[y as usize][x as usize])
