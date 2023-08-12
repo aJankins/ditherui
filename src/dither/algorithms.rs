@@ -75,8 +75,8 @@ impl<'a> EffectInput<Dither<'a>> for RgbaImageRepr {
         // prepare output
         let mut actual_img = vec![vec![[0_u8; 4]; xs]; ys];
 
-        for x in 0..xs {
-            for y in 0..ys {
+        for y in 0..ys {
+            for x in 0..xs {
                 if self.get(y).and_then(|row| row.get(x)).is_none() { continue; }
                 let [r,g,b,a] = self[y][x]; 
                 rgb_img[y][x] = [r, g, b];
@@ -88,8 +88,8 @@ impl<'a> EffectInput<Dither<'a>> for RgbaImageRepr {
         rgb_img = rgb_img.run_through(algorithm);
 
         // recombine rgb with alpha
-        for x in 0..xs {
-            for y in 0..ys {
+        for y in 0..ys {
+            for x in 0..xs {
                 actual_img[y][x] = [
                     rgb_img[y][x][0],
                     rgb_img[y][x][1],
