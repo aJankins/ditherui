@@ -77,6 +77,7 @@ impl<'a> EffectInput<Dither<'a>> for RgbaImageRepr {
 
         for x in 0..xs {
             for y in 0..ys {
+                if self.get(y).and_then(|row| row.get(x)).is_none() { continue; }
                 let [r,g,b,a] = self[y][x]; 
                 rgb_img[y][x] = [r, g, b];
                 alpha_values[y][x] = a;
