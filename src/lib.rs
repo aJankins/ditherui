@@ -161,21 +161,28 @@ pub type GradientMap<'a, Color> = &'a [(Color, f32)];
 
 #[cfg(test)]
 mod test {
+    use std::error::Error;
+
     use image::{DynamicImage, ImageResult};
     use palette::Srgb;
 
     use crate::{
         colour::{colours::srgb as RGB, gradient::IntoGradient, utils::ONE_BIT},
         prelude::{*, palettes::{WEB_SAFE, EIGHT_BIT}},
-        utils::{image::load_image_from_url_with_max_dim, ImageFilterResult}, Affectable,
+        utils::image::ImageRequest, Affectable,
     };
 
-    fn get_image() -> ImageFilterResult<DynamicImage> {
-        load_image_from_url_with_max_dim("https://i.pinimg.com/originals/60/a8/2c/60a82c6cf7fda046b291e6b2c78ea531.png", 1080)
+    type UtilResult<T> = Result<T,Box<dyn Error>>;
+
+    fn get_image() -> UtilResult<DynamicImage> {
+        ImageRequest::Url { 
+            url: "https://i.pinimg.com/originals/60/a8/2c/60a82c6cf7fda046b291e6b2c78ea531.png", 
+            max_dim: Some(1080),
+        }.perform()
     }
 
     #[test]
-    fn dither_test() -> ImageFilterResult<()> {
+    fn dither_test() -> UtilResult<()> {
         let image = get_image()?;
 
         let palette = [
@@ -193,7 +200,7 @@ mod test {
     }
 
     #[test]
-    fn filter_effects_test() -> ImageFilterResult<()> {
+    fn filter_effects_test() -> UtilResult<()> {
         let image = get_image()?;
 
         image
