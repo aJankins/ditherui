@@ -55,16 +55,16 @@ pub enum GifRequest<'a> {
 }
 
 impl<'a> GifRequest<'a> {
-    pub fn perform(&self) -> UtilResult<DynamicImage> {
+    pub fn perform(&self) -> UtilResult<Vec<Frame>> {
         match self {
             GifRequest::File {
                 file,
                 // max_dim 
-            } => load_image_from_path(file),
+            } => load_gif_from_file(file),
             GifRequest::Url {
                 url,
                 // max_dim
-            } => load_image_from_url(url),
+            } => load_gif_from_url(url),
         }
     }
 }
