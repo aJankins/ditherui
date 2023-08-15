@@ -85,7 +85,7 @@ pub fn b64_to_image(b64: &str) -> UtilResult<DynamicImage> {
 fn resize_image(image: &DynamicImage, factor: f32) -> DynamicImage {
     let (x, y) = image.dimensions();
     let mul = |int: u32, float: f32| (int as f32 * float) as u32;
-    image.resize(mul(x, factor), mul(y, factor), imageops::Gaussian)
+    image.resize(mul(x, factor), mul(y, factor), imageops::Nearest)
 }
 
 fn resize_image_with_max_dim(image: &DynamicImage, maxdim: u32) -> DynamicImage {
