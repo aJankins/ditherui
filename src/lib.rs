@@ -91,14 +91,6 @@ pub mod prelude {
         IntoGradientHsl,
         IntoGradientLch
     };
-    pub use crate::colour::mix::{
-        MixColour,
-        MixColourRgb,
-        MixColourHsl,
-        MixColourLab,
-        MixColourLch,
-        MixColourOklch,
-    };
 
     // constants
     pub use crate::colour::colours::srgb as SrgbColour;
@@ -176,7 +168,7 @@ mod test {
     use std::error::Error;
 
     use image::{DynamicImage, ImageResult};
-    use palette::Srgb;
+    use palette::{Srgb, named};
 
     use crate::{
         colour::{colours::srgb as RGB, utils::ONE_BIT},
@@ -198,9 +190,8 @@ mod test {
         let image = get_image()?;
 
         let palette = [
-            RGB::RED.build_gradient_lch(5),
-            RGB::BLUE.build_gradient_lch(5),
-            RGB::GOLD.build_gradient_lch(5),
+            named::PURPLE.into_format().build_gradient_lch(10),
+            named::GOLD.into_format().build_gradient_lch(10),
         ].concat();
 
         dither(&image, &ONE_BIT, Some("-mono"))?;

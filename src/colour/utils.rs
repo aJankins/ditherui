@@ -1,4 +1,4 @@
-use palette::{Srgb, FromColor, Lch, IntoColor, Hsl, Oklch};
+use palette::{Srgb, FromColor, Lch, IntoColor, Hsl, Oklch, Lab, color_difference::HyAb};
 
 use super::comparisons::rgb_weighted_euclidean;
 
@@ -60,10 +60,8 @@ pub fn quantize_rgb(original_rgb: Srgb, palette: &[Srgb]) -> Srgb {
     Srgb::from_components(srgb)
 }
 
-pub fn compute_rgb_error(main: Srgb, other: Srgb) ->(f32, f32, f32) {
-    let (r1, g1, b1) = main.into_components();
-    let (r2, g2, b2) = other.into_components();
-    (r1-r2, g1-g2, b1-b2)
+pub fn compute_rgb_error(main: Srgb, other: Srgb) -> (f32, f32, f32) {
+    (main - other).into_components()
 }
 
 pub fn grayscale_rgb(rgb: Srgb) -> Srgb {

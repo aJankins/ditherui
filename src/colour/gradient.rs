@@ -12,7 +12,7 @@ pub enum GradientMethod {
 /// Should be auto-implemented by having a colour satisfy the trait bounds.
 pub trait IntoGradientLch: Sized + IntoColor<Lch> + FromColor<Lch> + Copy {
     fn build_gradient_lch(self, shades: u16) -> Vec<Self> {
-        let step_size = 1.0 / (shades+1) as f32;
+        let step_size = 100.0 / (shades+1) as f32;
 
         (1..shades)
             .into_iter()
@@ -30,7 +30,7 @@ pub trait IntoGradientLch: Sized + IntoColor<Lch> + FromColor<Lch> + Copy {
 /// Should be auto-implemented by having a colour satisfy the trait bounds.
 pub trait IntoGradientHsl: Sized + IntoColor<Hsl> + FromColor<Hsl> + Copy {
     fn build_gradient_hsl(self, shades: u16) -> Vec<Self> {
-        let step_size = 100.0 / (shades+1) as f32;
+        let step_size = 1.0 / (shades+1) as f32;
 
         (1..shades)
             .into_iter()

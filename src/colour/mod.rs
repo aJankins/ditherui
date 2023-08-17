@@ -3,7 +3,6 @@ pub mod colours;
 pub mod comparisons;
 pub mod conversions;
 pub mod gradient;
-pub mod mix;
 
 /// Contains some default palettes that can be useful for dithering.
 pub mod palettes;
