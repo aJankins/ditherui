@@ -89,7 +89,8 @@ pub mod prelude {
     pub use crate::colour::gradient::{
         IntoGradient,
         IntoGradientHsl,
-        IntoGradientLch
+        IntoGradientLch,
+        IntoGradientOklch,
     };
 
     // constants
@@ -171,7 +172,7 @@ mod test {
     use palette::{Srgb, named};
 
     use crate::{
-        colour::{utils::ONE_BIT, gradient::IntoGradientOklch},
+        colour::utils::ONE_BIT,
         prelude::{*, palettes::{WEB_SAFE, EIGHT_BIT}},
         utils::image::ImageRequest, Affectable,
     };
@@ -190,8 +191,8 @@ mod test {
         let image = get_image()?;
 
         let palette = [
-            named::PURPLE.into_format().build_gradient_oklch(10),
-            named::GOLD.into_format().build_gradient_oklch(10),
+            named::PURPLE.into_format().build_gradient_lch(10),
+            named::GOLD.into_format().build_gradient_lch(10),
         ].concat();
 
         dither(&image, &ONE_BIT, Some("-mono"))?;
