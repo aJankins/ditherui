@@ -171,7 +171,7 @@ mod test {
     use palette::{Srgb, named};
 
     use crate::{
-        colour::{colours::srgb as RGB, utils::ONE_BIT},
+        colour::{utils::ONE_BIT, gradient::IntoGradientOklch},
         prelude::{*, palettes::{WEB_SAFE, EIGHT_BIT}},
         utils::image::ImageRequest, Affectable,
     };
@@ -180,8 +180,8 @@ mod test {
 
     fn get_image() -> UtilResult<DynamicImage> {
         ImageRequest::Url { 
-            url: "https://i.pinimg.com/originals/60/a8/2c/60a82c6cf7fda046b291e6b2c78ea531.png", 
-            max_dim: Some(1080),
+            url: "https://clipart-library.com/image_gallery/n781743.png", 
+            max_dim: Some(500),
         }.perform()
     }
 
@@ -190,8 +190,8 @@ mod test {
         let image = get_image()?;
 
         let palette = [
-            named::PURPLE.into_format().build_gradient_lch(10),
-            named::GOLD.into_format().build_gradient_lch(10),
+            named::PURPLE.into_format().build_gradient_oklch(10),
+            named::GOLD.into_format().build_gradient_oklch(10),
         ].concat();
 
         dither(&image, &ONE_BIT, Some("-mono"))?;
