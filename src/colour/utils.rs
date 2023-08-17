@@ -1,4 +1,4 @@
-use palette::{Srgb, FromColor, Lch, IntoColor, Hsl};
+use palette::{Srgb, FromColor, Lch, IntoColor, Hsl, Oklch};
 
 use super::comparisons::rgb_weighted_euclidean;
 
@@ -91,34 +91,4 @@ pub fn hexcode_to_srgb(value: &str) -> Srgb {
         );
         Srgb::new(0.0, 0.0, 0.0)
     }
-}
-
-pub enum GradientMethod {
-    LCH,
-    HSL,
-}
-pub fn build_rgb_gradient<C: IntoColor<Lch> + IntoColor<Hsl> + Copy>(color: C, shades: u16, method: GradientMethod) -> Vec<Srgb> {
-    let fractional_lch = 100.0 / shades as f32 + 1.0;
-    let fractional_hsl = 1.0 / shades as f32 + 1.0;
-    let luma_modify: Box<dyn FnMut(u16) -> Srgb> = match method {
-        GradientMethod::LCH => {
-            Box::new(|i : u16| {
-                let mut color: Lch = color.into_color();
-                color.l = i as f32 * fractional_lch;
-                Srgb::from_color(color)
-            })
-        },
-        GradientMethod::HSL => {
-            Box::new(|i : u16| {
-                let mut color: Hsl = color.into_color();
-                color.lightness = i as f32 * fractional_hsl;
-                Srgb::from_color(color)
-            })
-        },
-    };
-
-    (1..shades)
-        .into_iter()
-        .map(luma_modify)
-        .collect()
 }

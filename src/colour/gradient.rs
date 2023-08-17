@@ -1,47 +1,88 @@
-use palette::{IntoColor, Lch, Hsl, Srgb, FromColor};
+use palette::{IntoColor, Lch, Hsl, FromColor, Oklch};
 
-use super::utils::GradientMethod;
+// gradient logic
+pub enum GradientMethod {
+    LCH,
+    HSL,
+    OKLCH,
+}
 
-pub trait IntoGradient: Sized + IntoColor<Lch> + IntoColor<Hsl> + Copy {
-    fn build_gradient(self, shades: u16, method: GradientMethod) -> Vec<Self>;
-
-    fn build_gradient_hsl(self, shades: u16) -> Vec<Self> {
-        self.build_gradient(shades, GradientMethod::HSL)
-    }
-
+/// Defines a colour that can generate a gradient through Lch.
+/// 
+/// Should be auto-implemented by having a colour satisfy the trait bounds.
+pub trait IntoGradientLch: Sized + IntoColor<Lch> + FromColor<Lch> + Copy {
     fn build_gradient_lch(self, shades: u16) -> Vec<Self> {
-        self.build_gradient(shades, GradientMethod::LCH)
+        let step_size = 1.0 / (shades+1) as f32;
+
+        (1..shades)
+            .into_iter()
+            .map(|i| {
+                let mut color: Lch = self.into_color();
+                color.l = i as f32 * step_size;
+                Self::from_color(color)
+            })
+            .collect()
     }
 }
 
-impl<C: Sized 
-    + IntoColor<Lch> + IntoColor<Hsl> 
-    + FromColor<Lch> + FromColor<Hsl>
-    + Copy + FromColor<Srgb>> IntoGradient for C 
-{
-    fn build_gradient(self, shades: u16, method: GradientMethod) -> Vec<Self> {
-        let fractional_lch = 100.0 / shades as f32 + 1.0;
-        let fractional_hsl = 1.0 / shades as f32 + 1.0;
-        let luma_modify: Box<dyn FnMut(u16) -> Self> = match method {
-            GradientMethod::LCH => {
-                Box::new(|i : u16| {
-                    let mut color: Lch = self.into_color();
-                    color.l = i as f32 * fractional_lch;
-                    Self::from_color(color)
-                })
-            },
-            GradientMethod::HSL => {
-                Box::new(|i : u16| {
-                    let mut color: Hsl = self.into_color();
-                    color.lightness = i as f32 * fractional_hsl;
-                    Self::from_color(color)
-                })
-            },
-        };
-    
+/// Defines a colour that can generate a gradient through Hsl.
+/// 
+/// Should be auto-implemented by having a colour satisfy the trait bounds.
+pub trait IntoGradientHsl: Sized + IntoColor<Hsl> + FromColor<Hsl> + Copy {
+    fn build_gradient_hsl(self, shades: u16) -> Vec<Self> {
+        let step_size = 100.0 / (shades+1) as f32;
+
         (1..shades)
             .into_iter()
-            .map(luma_modify)
+            .map(|i| {
+                let mut color: Hsl = self.into_color();
+                color.lightness = i as f32 * step_size;
+                Self::from_color(color)
+            })
             .collect()
     }
-} 
+}
+
+/// Defines a colour that can generate a gradient through Oklch.
+/// 
+/// Should be auto-implemented by having a colour satisfy the trait bounds.
+pub trait IntoGradientOklch: Sized + IntoColor<Oklch> + FromColor<Oklch> + Copy {
+    fn build_gradient_oklch(self, shades: u16) -> Vec<Self> {
+        let step_size = 1.0 / (shades+1) as f32;
+
+        (1..shades)
+            .into_iter()
+            .map(|i| {
+                let mut color: Oklch = self.into_color();
+                color.l = i as f32 * step_size;
+                Self::from_color(color)
+            })
+            .collect()
+    }
+}
+
+/// Defines a colour that can generate a gradient through all supported gradient methods.
+/// 
+/// Should be auto-implemented by having a colour satisfy the trait bounds.
+pub trait IntoGradient: IntoGradientHsl + IntoGradientLch + IntoGradientOklch {
+    fn build_gradient(self, shades: u16, method: GradientMethod) -> Vec<Self> {
+        match method {
+            GradientMethod::HSL => self.build_gradient_hsl(shades),
+            GradientMethod::LCH => self.build_gradient_lch(shades),
+            GradientMethod::OKLCH => self.build_gradient_oklch(shades),
+        }
+    }
+}
+
+// general implementations
+impl<C> IntoGradientHsl for C where 
+    C: Sized + IntoColor<Hsl> + FromColor<Hsl> + Copy {}
+
+impl<C> IntoGradientLch for C where 
+    C: Sized + IntoColor<Lch> + FromColor<Lch> + Copy {}
+
+impl<C> IntoGradientOklch for C where 
+    C: Sized + IntoColor<Oklch> + FromColor<Oklch> + Copy {}
+
+impl<C> IntoGradient for C where
+    C: IntoGradientHsl + IntoGradientLch + IntoGradientOklch {}

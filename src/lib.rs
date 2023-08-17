@@ -86,7 +86,19 @@ pub mod prelude {
     pub use crate::Effect;
     pub use crate::Affectable;
     pub use crate::EffectInput;
-    pub use crate::colour::gradient::IntoGradient;
+    pub use crate::colour::gradient::{
+        IntoGradient,
+        IntoGradientHsl,
+        IntoGradientLch
+    };
+    pub use crate::colour::mix::{
+        MixColour,
+        MixColourRgb,
+        MixColourHsl,
+        MixColourLab,
+        MixColourLch,
+        MixColourOklch,
+    };
 
     // constants
     pub use crate::colour::colours::srgb as SrgbColour;
@@ -167,7 +179,7 @@ mod test {
     use palette::Srgb;
 
     use crate::{
-        colour::{colours::srgb as RGB, gradient::IntoGradient, utils::ONE_BIT},
+        colour::{colours::srgb as RGB, utils::ONE_BIT},
         prelude::{*, palettes::{WEB_SAFE, EIGHT_BIT}},
         utils::image::ImageRequest, Affectable,
     };
