@@ -43,7 +43,7 @@ pub trait IntoGradientHsl: Sized + IntoColor<Hsl> + FromColor<Hsl> + Copy {
     }
 }
 
-/// Defines a colour that can generate a gradient through Oklch.
+/// Defines a colour that can generate a gradient through Oklch. Tends to distort hues... unknown why.
 /// 
 /// Should be auto-implemented by having a colour satisfy the trait bounds.
 pub trait IntoGradientOklch: Sized + IntoColor<Oklch> + FromColor<Oklch> + Copy {
