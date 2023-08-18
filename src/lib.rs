@@ -66,8 +66,8 @@
 //! To see examples for this, check out the implementations of `EffectInput<Dither>` and `EffectInput<Filter>` on
 //! `DynamicImage`.
 
-use image::{DynamicImage, RgbImage, ImageBuffer, Rgb};
-use utils::image::{RgbImageRepr, RgbPixelRepr};
+
+
 pub mod dither;
 
 /// Filters that can be applied to the image - such as brightness, contrast, and more.
@@ -136,7 +136,7 @@ mod test {
     use palette::{Srgb, named};
 
     use crate::{
-        colour::{utils::ONE_BIT, gradient},
+        colour::{utils::ONE_BIT},
         prelude::{*, palettes::{WEB_SAFE, EIGHT_BIT}}, dither::{FLOYD_STEINBERG, JARVIS_JUDICE_NINKE, STUCKI, ATKINSON, BURKES, SIERRA, SIERRA_TWO_ROW, SIERRA_LITE, bayer::Bayer},
     };
 
@@ -211,7 +211,7 @@ mod test {
             .apply(&filters::Contrast(1.5))
             .save("data/colour/contrast.1.5.png")?;
 
-        let gradient_map = [
+        let _gradient_map = [
             (Srgb::new(0.0, 0.0, 1.0), 0.00),
             (Srgb::new(1.0, 0.0, 0.0), 0.50),
             (Srgb::new(0.0, 1.0, 0.0), 1.00),

@@ -1,11 +1,11 @@
 use std::marker::PhantomData;
 
-use image::{ImageBuffer, Rgb};
+
 use palette::Srgb;
 
 use crate::{
-    utils::{numops::map_to_2d, image::{get_dimensions_of_matrix, RgbImageRepr}},
-    colour::utils::{quantize_rgb, ONE_BIT, compute_rgb_error, grayscale_rgb}, effect::Effect,
+    utils::{image::{get_dimensions_of_matrix, RgbImageRepr}},
+    colour::utils::{quantize_rgb, compute_rgb_error}, effect::Effect,
 };
 
 /// Every `ErrorPropagator` starts with a state of `Base`.

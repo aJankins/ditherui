@@ -1,4 +1,4 @@
-use image::{DynamicImage, ImageBuffer, Rgb, Frame, Rgba};
+
 use palette::Srgb;
 
 use crate::{utils::image::RgbPixelRepr, effect::Effect};

@@ -1,15 +1,3 @@
-use std::error::Error;
-use std::fs::File;
-use std::io::{Cursor, Read};
-use std::slice::SliceIndex;
-
-use base64::Engine;
-use image::codecs::gif::GifDecoder;
-use image::io::Reader as ImageReader;
-use image::{self, imageops, DynamicImage, GenericImageView, Frame, AnimationDecoder};
-
-type UtilResult<T> = Result<T,Box<dyn Error>>;
-
 pub type RgbPixelRepr = [u8; 3];
 pub type RgbaPixelRepr = [u8; 4];
 

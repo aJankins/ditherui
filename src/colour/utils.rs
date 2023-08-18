@@ -1,4 +1,4 @@
-use palette::{Srgb, FromColor, Lch, IntoColor, Hsl, Oklch, Lab, color_difference::HyAb};
+use palette::{Srgb, FromColor, Lch};
 
 use super::comparisons::rgb_weighted_euclidean;
 
