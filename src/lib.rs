@@ -2,69 +2,86 @@
 //!
 //! Currently there's two classes of effects:
 //!
-//! 1. [**Dithering**](./dither/algorithms/enum.Dither.html) - Limiting the colour palette of a given image while still
+//! 1. [**Dithering**](./dither/index.html) - Limiting the colour palette of a given image while still
 //!    retaining more detail than a purely quantized approach would.
-//! 2. [**Filtering**](./filter/algorithms/enum.Filter.html) - Some more common effects applied on an image, such as brightness,
+//! 2. [**Filtering**](./filter/algorithms/index.html) - Some more common effects applied on an image, such as brightness,
 //!    contrast, gradient mapping, and more.
 //!
-//! This crate assumes that you are using the `image` crate for processing - as all these
-//! algorithms work specifically with the `DynamicImage` struct (for now).
+//! The library lets these effects work on a variety of types, including some from the `image` crate. If you're not using
+//! `image` however, you can rely on the implementations on intermediate types:
+//! 
+//! - For pixels, it's `[u8; 3]` for RGB and `[u8; 4]` for RGBA.
+//! - For images, it's `Vec<Vec<{Pixel}>>` - where `Pixel` is anything listed above.
 //!
 //! The *prelude* is useful for importing some common functionality, like the algorithms themselves
 //! alongside some traits.
 //! 
-//! # Traits and Extensibility
+//! **Note:** Colour palettes _currently_ require the `palette` crate - as 
+//! they are defined using its `Srgb` type.
 //! 
-//! ## `Effect<T>` and `Affectable<E>`
+//! # Usage
 //! 
-//! Think of these as opposites - like `From<T>` and `Into<T>`. The first defines an effect that can be
-//! applied on `T`, whereas the second defines something that can have an effect `E` applied to it.
-//! 
-//! If you'd like to extend this library with your own effect, implement [`Effect<T>`](./trait.Effect.html) on it - where `T` is
-//! what it can be applied on. Once you do this, `T` will _automatically_ implement [`Affectable<E>`](./trait.Affectable.html), where
-//! `E` is your effect.
-//! 
-//! Note that this doesn't go the opposite way - applying `Affectable<E>` on something won't implement
-//! `Effect<T>` due to conflicting implementation issues. However, if you _would_ like to define a new type
-//! to apply an effect on, that's where [`EffectInput<T>`](./trait.EffectInput.html) comes in.
-//! 
-//! ## `EffectInput<T>`
-//! 
-//! This trait defines an _input_ to an effect. For example, implementing `EffectInput<Filter<'a>>` on T means
-//! that `Filter<'a>` accepts `T` as input. As a result, you also get the following implementations for free:
-//! 
-//! - `impl Effect<T> for Filter<'a>`
-//! - `impl Affectable<Filter<'a>> for T`
-//! 
-//! As you can see, `EffectInput<T>` is almost identical to `Affectable<T>`. The only difference being that you can 
-//! _actually_ implement it without conflicting implementations.
-//! 
-//! So for example, if you'd like to support _dithering_ for `MyType`, you can do this:
+//! This usage is simplified to focus on the logic in this crate, rather than on `image` or `palette`.
 //! 
 //! ```ignore
-//! impl<'a, I: EffectInput<Dither<'a>> for MyType { /* ... */ }
+//! use image::DynamicImage;
+//! use image_effects::{
+//!     prelude::*
+//!     dither::FLOYD_STEINBERG,
+//!     palette::named,
+//! }
+//! 
+//! fn get_image() -> DynamicImage { /* ... */ }
+//! 
+//! fn main() {
+//!     let image = get_image();
+//!     let palette = vec![
+//!         named::BLACK, named::WHITE
+//!     ];
+//! 
+//!     image
+//!         .apply(&filters::HueRotate(180.0))
+//!         .apply(&FLOYD_STEINBERG.with_palette(palette))
+//!         .save("image.png");
+//! }
 //! ```
 //! 
-//! ...at which point you can call `.apply` on an instance of `MyType` and pass in a `Dither`.
+//! # Effects
 //! 
-//! ## Summary
-//! - If you want to add an effect `E` which works with an image `I`, implement `Effect<I>` for `E`.
-//! - If you want to add an image `I` that works with an effect `E`, implement `EffectInput<E>` for `I`.
-//!   - ...which will automatically implement `Effect<E>` for `I` as well.
+//! [`Effect<T>`](effect/trait.Effect.html) is the trait to implement here, since
+//! [`Affectable<T, E>`](effect/trait.Affectable.html) will be automatically implemented.
 //! 
-//! ## Tips
+//! Basically, `Effect<T>` defines an effect that can be applied on `T` - so in turn `Affectable` can depend on
+//! this implementation to attach an `.apply` method _onto_ `T` that accepts `Effect<T>`.
 //! 
-//! ### Implementing `EffectInput` for existing effects
-//! _Because_ `[u8; 3]` is a valid `EffectInput<Filter>`, anything that can be reduced to a series of
-//! `RGB` values will have the actual effect logic readymade.
+//! In other words, if I implement `Effect<Image>` on an effect called `Brighten`, I can then call `.apply` on
+//! any `Image` and pass in a reference to `Brighten`.
 //! 
-//! The same applies for `EffectInput<Dither>`, however it's more complicated because dithering requires
-//! a more complicated input. Specifically, a _2d matrix_ of RGB values (`[u8; 3]`). In other words
-//! you'll need to convert your type into a _2d matrix_ first (`Vec<Vec<[u8; 3]>>`) - which already
-//! implements `EffectInput<Dither>`.
+//! This also means that although you can define your own effects easily, the same isn't for new kinds of image.
+//! You can implement `Affectable`, but not `Effect` due to the external trait rule:
 //! 
-//! To see examples for this, check out the implementations of `EffectInput<Dither>` and `EffectInput<Filter>` on
-//! `DynamicImage`.
+//! > When implementing a trait, you must either own _the trait_ or _the struct_.
+//! 
+//! Since external crates don't own `Effect<T>` _nor_ the effects provided by this library, this effectively locks
+//! you out of defining new `T`s directly.
+//! 
+//! However, since most effects get implemented using an intermediate format, such as `[u8; 3]` for an RGB pixel or
+//! `Vec<Vec<[u8; 3]>>` for an image, theoretically you just need to convert whatever image/medium you'd like to apply
+//! effects on into one of these intermediate formats.
+//! 
+//! Also, when creating an effect you don't need to define every single image it's compatible too - as auto-implementation
+//! happens here as well. For example, if you implement an effect that can be applied on `[u8; 3]`, this will also result 
+//! in implementations for RGBA `[u8; 4]`, images, and beyond. As a result, it's always best to define an `Effect` on the simplest
+//! possible type.
+
+
+/// Various dithering algorithms, including both error propagation and ordered.
+/// 
+/// For error propagation, existing algorithms are setup as constants. These aren't
+/// directly usable as an effect since they need to be configured with a palette.
+/// 
+/// As for `Bayer`, it requires a palette to be initialized with, so it doesn't face
+/// this issue.
 pub mod dither;
 
 /// Filters that can be applied to the image - such as brightness, contrast, and more.
@@ -76,16 +93,18 @@ pub mod utils;
 /// Colour related logic, such as distance functions, palettes, gradient generation, etc.
 pub mod colour;
 
+/// Traits and implementations for _effects_ and anything that can be affected by them.
+pub mod effect;
+
 /// Prelude for including the useful elements from the library - including algorithms, traits, and constants.
 pub mod prelude {
     // algorithms
-    pub use crate::dither::Dither;
-    pub use crate::filter::Filter;
+    pub use crate::dither;
+    pub use crate::filter::filters;
     
     // traits
-    pub use crate::Effect;
-    pub use crate::Affectable;
-    pub use crate::EffectInput;
+    pub use crate::effect::Effect;
+    pub use crate::effect::Affectable;
     pub use crate::colour::gradient::{
         IntoGradient,
         IntoGradientHsl,
@@ -96,46 +115,6 @@ pub mod prelude {
     // constants
     pub use crate::colour::colours::srgb as SrgbColour;
     pub use crate::colour::palettes;
-}
-
-/// Defines an effect that can be applied onto `T`.
-/// 
-/// Doing this will also implement `Affectable<E>` for `T` - where
-/// `E` is the `Effect` you're implementing this on.
-pub trait Effect<T> {
-    /// Affects `T` using `self`.
-    fn affect(&self, item: T) -> T;
-}
-
-/// Defines an _input_ `I` for the effect `T`.
-/// 
-/// Mostly useful because implementing this auto-implements:
-/// - `Effect<I>` for `T`
-/// - `Affectable<T>` for `I`
-pub trait EffectInput<T> {
-    /// Runs the input (`self`) through the `effect`.
-    fn run_through(&self, effect: &T) -> Self;
-}
-
-impl<T, I: EffectInput<T>> Effect<I> for T {
-    fn affect(&self, item: I) -> I {
-        item.run_through(self)
-    }
-}
-
-/// Defines something that can have an effect applied to it.
-/// 
-/// It doesn't necessarily need to be implemented - if `Effect<T>` is implemented on `E`,
-/// then `T` will automatically implement `Affectable<E>`.
-pub trait Affectable<E> {
-    /// Applies the `effect` onto `self`.
-    fn apply(self, effect: &E) -> Self;
-}
-
-impl<T, E> Affectable<E> for T where E: Effect<T> {
-    fn apply(self, effect: &E) -> Self {
-        effect.affect(self)
-    }
 }
 
 #[macro_export]
@@ -168,22 +147,33 @@ pub type GradientMap<'a, Color> = &'a [(Color, f32)];
 mod test {
     use std::error::Error;
 
-    use image::{DynamicImage, ImageResult};
+    use image::{DynamicImage, ImageResult, GenericImageView, imageops};
     use palette::{Srgb, named};
 
     use crate::{
-        colour::utils::ONE_BIT,
-        prelude::{*, palettes::{WEB_SAFE, EIGHT_BIT}},
-        utils::image::ImageRequest, Affectable,
+        colour::{utils::ONE_BIT},
+        prelude::{*, palettes::{WEB_SAFE, EIGHT_BIT}}, dither::{FLOYD_STEINBERG, JARVIS_JUDICE_NINKE, STUCKI, ATKINSON, BURKES, SIERRA, SIERRA_TWO_ROW, SIERRA_LITE, bayer::Bayer},
     };
 
     type UtilResult<T> = Result<T,Box<dyn Error>>;
 
+    const IMAGE_URL: &'static str = "https://clipart-library.com/image_gallery/n781743.png";
+    const MAX_DIM: Option<usize> = Some(500);
+
     fn get_image() -> UtilResult<DynamicImage> {
-        ImageRequest::Url { 
-            url: "https://clipart-library.com/image_gallery/n781743.png", 
-            max_dim: Some(500),
-        }.perform()
+        let img_bytes = reqwest::blocking::get(IMAGE_URL)?.bytes()?;
+        let image = image::load_from_memory(&img_bytes)?;
+        
+        let image = if let Some(max_dim) = MAX_DIM {
+            let (x, y) = image.dimensions();
+            if max_dim < x.max(y) as usize {
+                let image = &image;let factor = max_dim as f32 / x.max(y) as f32;
+                let mul = |int: u32, float: f32| (int as f32 * float) as u32;
+                image.resize(mul(x, factor), mul(y, factor), imageops::Nearest)
+            } else { image }
+        } else { image };
+
+        Ok(image)
     }
 
     #[test]
@@ -195,10 +185,10 @@ mod test {
             named::GOLD.into_format().build_gradient_lch(10),
         ].concat();
 
-        dither(&image, &ONE_BIT, Some("-mono"))?;
-        dither(&image, &WEB_SAFE, Some("-web-safe"))?;
-        dither(&image, &EIGHT_BIT, Some("-8-bit"))?;
-        dither(&image, &palette, Some("-custom-palette"))?;
+        dither(&image, ONE_BIT.to_vec(), Some("-mono"))?;
+        dither(&image, WEB_SAFE.to_vec(), Some("-web-safe"))?;
+        dither(&image, EIGHT_BIT.to_vec(), Some("-8-bit"))?;
+        dither(&image, palette, Some("-custom-palette"))?;
 
         Ok(())
     }
@@ -209,59 +199,65 @@ mod test {
 
         image
             .clone()
-            .apply(&Filter::RotateHue(180.0))
+            .apply(&filters::HueRotate(180.0))
             .save("data/colour/rotate-hue-180.png")?;
         image
             .clone()
-            .apply(&Filter::Brighten( 0.2))
+            .apply(&filters::Brighten( 0.2))
             .save("data/colour/brighten+0.2.png")?;
         image
             .clone()
-            .apply(&Filter::Brighten(-0.2))
+            .apply(&filters::Brighten(-0.2))
             .save("data/colour/brighten-0.2.png")?;
         image
             .clone()
-            .apply(&Filter::Saturate( 0.2))
+            .apply(&filters::Saturate( 0.2))
             .save("data/colour/saturate+0.2.png")?;
         image
             .clone()
-            .apply(&Filter::Saturate(-0.2))
+            .apply(&filters::Saturate(-0.2))
             .save("data/colour/saturate-0.2.png")?;
         image
             .clone()
-            .apply(&Filter::Contrast(0.5))
+            .apply(&filters::Contrast(0.5))
             .save("data/colour/contrast.0.5.png")?;
         image
             .clone()
-            .apply(&Filter::Contrast(1.5))
+            .apply(&filters::Contrast(1.5))
             .save("data/colour/contrast.1.5.png")?;
 
-        let gradient_map = [
+        let _gradient_map = [
             (Srgb::new(0.0, 0.0, 1.0), 0.00),
             (Srgb::new(1.0, 0.0, 0.0), 0.50),
             (Srgb::new(0.0, 1.0, 0.0), 1.00),
         ];
 
+        let mut gradient_map = filters::GradientMap::new();
+        gradient_map
+            .add_entry(Srgb::new(0.0, 0.0, 1.0), 0.00)
+            .add_entry(Srgb::new(1.0, 0.0, 0.0), 0.50)
+            .add_entry(Srgb::new(0.0, 1.0, 0.0), 1.00);
+
         image
             .clone()
-            .apply(&Filter::GradientMap(&gradient_map))
+            .apply(&gradient_map)
             .save("data/colour/gradient-mapped.png")?;
 
-        let hue_palette = [180.0, 300.0];
+        let hue_palette = vec![180.0, 300.0];
 
         image
             .clone()
-            .apply(&Filter::QuantizeHue(&hue_palette))
+            .apply(&filters::QuantizeHue::with_hues(hue_palette))
             .save("data/colour/quantize-hue.png")?;
 
         image
             .clone()
-            .apply(&Filter::MultiplyHue(4.0))
+            .apply(&filters::MultiplyHue(4.0))
             .save("data/colour/multiply-hue.4.0.png")?;
 
         image
             .clone()
-            .apply(&Filter::MultiplyHue(12.0))
+            .apply(&filters::MultiplyHue(12.0))
             .save("data/colour/multiply-hue.12.0.png")?;
 
         Ok(())
@@ -269,61 +265,35 @@ mod test {
 
     fn dither(
         image: &DynamicImage,
-        palette: &[Srgb],
+        palette: Vec<Srgb>,
         opt_postfix: Option<&str>,
     ) -> ImageResult<()> {
         let postfix = opt_postfix.unwrap_or("");
-        image
-            .clone()
-            .apply(&Dither::Basic(palette))
-            .save(format!("data/dither/basic{}.png", postfix))?;
-        image
-            .clone()
-            .apply(&Dither::FloydSteinberg(palette))
-            .save(format!("data/dither/floyd-steinberg{}.png", postfix))?;
-        image
-            .clone()
-            .apply(&Dither::JarvisJudiceNinke(palette))
-            .save(format!("data/dither/jarvis-judice-ninke{}.png", postfix))?;
-        image
-            .clone()
-            .apply(&Dither::Stucki(palette))
-            .save(format!("data/dither/stucki{}.png", postfix))?;
-        image
-            .clone()
-            .apply(&Dither::Atkinson(palette))
-            .save(format!("data/dither/atkinson{}.png", postfix))?;
-        image
-            .clone()
-            .apply(&Dither::Burkes(palette))
-            .save(format!("data/dither/burkes{}.png", postfix))?;
-        image
-            .clone()
-            .apply(&Dither::Sierra(palette))
-            .save(format!("data/dither/sierra{}.png", postfix))?;
-        image
-            .clone()
-            .apply(&Dither::SierraTwoRow(palette))
-            .save(format!("data/dither/sierra-two-row{}.png", postfix))?;
-        image
-            .clone()
-            .apply(&Dither::SierraLite(palette))
-            .save(format!("data/dither/sierra-lite{}.png", postfix))?;
-        image
-            .clone()
-            .apply(&Dither::Bayer(2, palette))
+
+        let error_propagators = vec![
+            FLOYD_STEINBERG,
+            JARVIS_JUDICE_NINKE,
+            STUCKI,
+            ATKINSON,
+            BURKES,
+            SIERRA,
+            SIERRA_TWO_ROW,
+            SIERRA_LITE
+        ];
+
+        for propagator in error_propagators.into_iter() {
+            image.clone()
+                .apply(&propagator.with_palette(palette.clone()))
+                .save(format!("data/dither/{}{}.png", propagator.name, postfix))?;
+        }
+
+        image.clone().apply(&Bayer::new(2, palette.clone()))
             .save(format!("data/dither/bayer-2x2{}.png", postfix))?;
-        image
-            .clone()
-            .apply(&Dither::Bayer(4, palette))
+        image.clone().apply(&Bayer::new(4, palette.clone()))
             .save(format!("data/dither/bayer-4x4{}.png", postfix))?;
-        image
-            .clone()
-            .apply(&Dither::Bayer(8, palette))
+        image.clone().apply(&Bayer::new(8, palette.clone()))
             .save(format!("data/dither/bayer-8x8{}.png", postfix))?;
-        image
-            .clone()
-            .apply(&Dither::Bayer(16, palette))
+        image.clone().apply(&Bayer::new(16, palette.clone()))
             .save(format!("data/dither/bayer-16x16{}.png", postfix))?;
         Ok(())
     }

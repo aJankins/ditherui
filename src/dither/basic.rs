@@ -1,11 +1,13 @@
 use image::DynamicImage;
 use palette::Srgb;
 
-use crate::colour::utils::{grayscale_rgb, quantize_rgb, compute_rgb_error};
+use crate::{colour::utils::{grayscale_rgb, quantize_rgb, compute_rgb_error}, utils::image::RgbImageRepr};
 
-use super::error::RgbImageRepr;
-
-pub fn basic_dither(image: &mut RgbImageRepr, palette: &[Srgb]) {
+// this function is essentially archived. kept here moreso as an example of a naive implementation
+// rather than something to actually use - due to its poor performance.
+//
+// if you want to understand dithering, this is the simplest possible implementation for it.
+fn basic_dither(image: &mut RgbImageRepr, palette: &[Srgb]) {
     let mut error = (0.0, 0.0, 0.0);
 
     let ydim = image.len();

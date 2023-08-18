@@ -1,4 +1,4 @@
-use palette::{Srgb, FromColor, Lch, SetHue, Lighten, Darken, ShiftHue, GetHue, LabHue};
+use palette::{Srgb, FromColor, Lch, SetHue, Lighten, Darken, ShiftHue, LabHue};
 
 use crate::colour::utils;
 
