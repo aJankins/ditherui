@@ -2,20 +2,54 @@
 //!
 //! Currently there's two classes of effects:
 //!
-//! 1. [**Dithering**](./dither/algorithms/enum.Dither.html) - Limiting the colour palette of a given image while still
+//! 1. [**Dithering**](./dither/index.html) - Limiting the colour palette of a given image while still
 //!    retaining more detail than a purely quantized approach would.
-//! 2. [**Filtering**](./filter/algorithms/enum.Filter.html) - Some more common effects applied on an image, such as brightness,
+//! 2. [**Filtering**](./filter/algorithms/index.html) - Some more common effects applied on an image, such as brightness,
 //!    contrast, gradient mapping, and more.
 //!
-//! This crate assumes that you are using the `image` crate for processing - as all these
-//! algorithms work specifically with the `DynamicImage` struct (for now).
+//! The library lets these effects work on a variety of types, including some from the `image` crate. If you're not using
+//! `image` however, you can rely on the implementations on intermediate types:
+//! 
+//! - For pixels, it's `[u8; 3]` for RGB and `[u8; 4]` for RGBA.
+//! - For images, it's `Vec<Vec<{Pixel}>>` - where `Pixel` is anything listed above.
 //!
 //! The *prelude* is useful for importing some common functionality, like the algorithms themselves
 //! alongside some traits.
 //! 
+//! **Note:** Colour palettes _currently_ require the `palette` crate - as 
+//! they are defined using its `Srgb` type.
+//! 
+//! # Usage
+//! 
+//! This usage is simplified to focus on the logic in this crate, rather than on `image` or `palette`.
+//! 
+//! ```ignore
+//! use image::DynamicImage;
+//! use image_effects::{
+//!     prelude::*
+//!     dither::FLOYD_STEINBERG,
+//!     palette::named,
+//! }
+//! 
+//! fn get_image() -> DynamicImage { /* ... */ }
+//! 
+//! fn main() {
+//!     let image = get_image();
+//!     let palette = vec![
+//!         named::BLACK, named::WHITE
+//!     ];
+//! 
+//!     image
+//!         .apply(&filters::HueRotate(180.0))
+//!         .apply(&FLOYD_STEINBERG.with_palette(palette))
+//!         .save("image.png");
+//! }
+//! ```
+//! 
 //! # Effects
 //! 
-//! `Effect<T>` is the trait to implement here, since `Affectable<T, E>` will be automatically implemented.
+//! [`Effect<T>`](effect/trait.Effect.html) is the trait to implement here, since
+//! [`Affectable<T, E>`](effect/trait.Affectable.html) will be automatically implemented.
 //! 
 //! Basically, `Effect<T>` defines an effect that can be applied on `T` - so in turn `Affectable` can depend on
 //! this implementation to attach an `.apply` method _onto_ `T` that accepts `Effect<T>`.
@@ -41,7 +75,13 @@
 //! possible type.
 
 
-
+/// Various dithering algorithms, including both error propagation and ordered.
+/// 
+/// For error propagation, existing algorithms are setup as constants. These aren't
+/// directly usable as an effect since they need to be configured with a palette.
+/// 
+/// As for `Bayer`, it requires a palette to be initialized with, so it doesn't face
+/// this issue.
 pub mod dither;
 
 /// Filters that can be applied to the image - such as brightness, contrast, and more.
@@ -53,6 +93,7 @@ pub mod utils;
 /// Colour related logic, such as distance functions, palettes, gradient generation, etc.
 pub mod colour;
 
+/// Traits and implementations for _effects_ and anything that can be affected by them.
 pub mod effect;
 
 /// Prelude for including the useful elements from the library - including algorithms, traits, and constants.

@@ -141,7 +141,7 @@ type ConstErrorPropagator = ErrorPropagator<'static, 'static, Base>;
 /// 
 /// Distributes the entire error.
 /// 
-/// ```ignore
+/// ```notrust
 /// - x 7
 /// 5 3 1
 /// ```
@@ -158,7 +158,7 @@ pub const FLOYD_STEINBERG: ConstErrorPropagator = ErrorPropagator::new(
 /// 
 /// Distributes the entire error.
 /// 
-/// ```ignore
+/// ```notrust
 /// - - x 7 5
 /// 3 5 7 5 3
 /// 1 3 5 3 1
@@ -177,7 +177,7 @@ pub const JARVIS_JUDICE_NINKE: ConstErrorPropagator = ErrorPropagator::new(
 /// 
 /// Doesn't distribute the entire error - only 6/8ths of it.
 /// 
-/// ```ignore
+/// ```notrust
 /// - - x 1 1
 /// - 1 1 1 -
 /// - - 1 - -
@@ -196,7 +196,7 @@ pub const ATKINSON: ConstErrorPropagator = ErrorPropagator::new(
 /// 
 /// Distributes the entire error.
 /// 
-/// ```ignore
+/// ```notrust
 /// - - x 8 4
 /// 2 4 8 4 2
 /// ```
@@ -213,7 +213,7 @@ pub const BURKES: ConstErrorPropagator = ErrorPropagator::new(
 /// 
 /// Distributes the entire error.
 /// 
-/// ```ignore
+/// ```notrust
 /// - - x 8 4
 /// 2 4 8 4 2
 /// 1 2 4 2 1
@@ -232,7 +232,7 @@ pub const STUCKI: ConstErrorPropagator = ErrorPropagator::new(
 /// 
 /// Distributes the entire error.
 /// 
-/// ```ignore
+/// ```notrust
 /// - - x 5 3
 /// 2 4 5 4 2
 /// - 2 3 2 -
@@ -251,7 +251,7 @@ pub const SIERRA: ConstErrorPropagator = ErrorPropagator::new(
 /// 
 /// Distributes the entire error.
 /// 
-/// ```ignore
+/// ```notrust
 /// - - x 4 3
 /// 1 2 3 2 1
 /// ```
@@ -268,7 +268,7 @@ pub const SIERRA_TWO_ROW: ConstErrorPropagator = ErrorPropagator::new(
 /// 
 /// Distributes the entire error.
 /// 
-/// ```ignore
+/// ```notrust
 /// - x 2
 /// 1 1 -
 /// ```
