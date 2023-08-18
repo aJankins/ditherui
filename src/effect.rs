@@ -4,14 +4,23 @@ use crate::{utils::{image::{RgbImageRepr, RgbPixelRepr, get_dimensions_of_matrix
 
 /// Defines an effect that can be applied onto `T`.
 /// 
-/// Doing this will also implement `Affectable<E>` for `T` - where
-/// `E` is the `Effect` you're implementing this on.
+/// Implementing this auto-implements `Affectable<T, F>` for `T`,
+/// where `F` is this effect.
 pub trait Effect<T> {
     /// Affects `T` using `self`.
     fn affect(&self, item: T) -> T;
 }
 
+/// Defines something that can be affected.
+/// 
+/// This is auto-implemented for any `T` and `F` where `F`
+/// is an effect that can be applied on `T`.
+/// 
+/// As a result it should almost never be implemented directly, like `Into<T>` in the
+/// standard library.
 pub trait Affectable<T, F: Effect<T>> {
+
+    /// Applies an effect on `self`.
     fn apply(self, effect: &F) -> Self;
 }
 

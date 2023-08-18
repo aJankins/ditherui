@@ -5,34 +5,45 @@ use crate::{utils::image::RgbPixelRepr, effect::Effect};
 
 use super::raw::{contrast, gradient_map, quantize_hue, brighten, saturate, shift_hue, multiply_hue};
 
-pub const CHROMA_BOUND: f32 = 128.0;
-
 /// Rotates the hue based on the amount of degrees passed.
-pub struct HueRotate(pub f32);
+pub struct HueRotate(
+    /// Amount of degrees to rotate the hue by.
+    pub f32
+);
 
 /// Modifies the contrast of the image.
-///
-/// - `>1.0`: adds contrast to image.
-/// - `0.0 ~ 1.0`: reduces contrast to image.
-/// - `<0.0`: starts inverting the image - with `-1.0` being total inversion.
-pub struct Contrast(pub f32);
+pub struct Contrast(
+    /// A general factor to apply contrast.
+    /// 
+    /// - Anything higher than `1.0` will add contrast.
+    /// - Anything between `0.0` and `1.0` will decrease the contrast.
+    /// - Anything below `0.0` will start inverting the image - with `-1.0` being a 
+    ///   total inversion while preserving contrast
+    pub f32
+);
 
 /// Modifies the brightness of the image.
-///
-/// This value can range from `-1.0`, which turns all pixels black, and `1.0`, which makes
-/// all pixels white.
-pub struct Brighten(pub f32);
+pub struct Brighten(
+    /// Factor to change brightness by.
+    /// 
+    /// This value can range from `-1.0`, which turns all pixels black, and `1.0`, which makes
+    /// all pixels white.
+    pub f32
+);
 
 /// Modifies the saturation of the image.
-///
-/// This value can range from `-1.0`, which removes all saturation, and `1.0`, which maximizes
-/// all saturation.
-/// 
-/// Internally, `Saturate(1.0)` would mean setting each pixel to `128.0 chroma` in LCH terms -
-/// despite Chroma being technically unbounded.
-/// 
-/// This may change in the future.
-pub struct Saturate(pub f32);
+pub struct Saturate(
+    /// Factor to affect saturation by.
+    /// 
+    /// This value can range from `-1.0`, which removes all saturation, and `1.0`, which maximizes
+    /// all saturation.
+    /// 
+    /// Internally, `Saturate(1.0)` would mean setting each pixel to `128.0 chroma` in LCH terms -
+    /// despite Chroma being technically unbounded.
+    /// 
+    /// This may change in the future.
+    pub f32
+);
 
 /// Applies a gradient map to the image.
 ///
@@ -53,10 +64,12 @@ impl GradientMap {
         Self { map: Vec::new() }
     }
 
+    /// Create a new gradient map from an existing map.
     pub fn with_map(map: Vec<(Srgb, f32)>) -> Self {
         Self { map }
     }
 
+    /// Add an entry into the gradient map.
     pub fn add_entry(&mut self, colour: Srgb, luminance: f32) -> &mut Self {
         self.map.push((colour, luminance));
         self
@@ -76,10 +89,12 @@ impl QuantizeHue {
         Self { hues: Vec::new() }
     }
 
+    /// Create a `QuantizeHue` effect with the given hues.
     pub fn with_hues(hues: Vec<f32>) -> Self {
         Self { hues }
     }
 
+    /// Add a hue to the list.
     pub fn add_hue(&mut self, hue: f32) -> &mut Self {
         self.hues.push(hue);
         self

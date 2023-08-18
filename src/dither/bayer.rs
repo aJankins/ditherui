@@ -4,14 +4,26 @@ use palette::Srgb;
 
 use crate::{utils::{numops::average, image::{RgbImageRepr, RgbPixelRepr}}, colour::utils::quantize_rgb, effect::Effect};
 
+/// Represents the _ordered_ method of dithering. Compared to error propagation, this method is less accurate - however it
+/// results in a pattern that can be visually appealing.
+/// 
+/// In addition it only modifies each pixel on its own without needing to simultaneously touch/affect other pixels, making it 
+/// easily possible to parallellize.
 pub struct Bayer {
     matrix_size: usize,
     palette: Vec<Srgb>,
 }
 
 impl Bayer {
+
+    /// Creates a new `Bayer` ditherer with the given matrix size.
     pub fn new(matrix_size: usize, palette: Vec<Srgb>) -> Self {
         Self { matrix_size, palette }
+    }
+
+    /// Creates a clone of the ditherer with a different matrix size.
+    pub fn with_matrix_size(&self, matrix_size: usize) -> Self {
+        Self { matrix_size, palette: self.palette.clone() }
     }
 
     fn dither_matrix(n: usize) -> Array<f64, Dim<[usize; 2]>> {
