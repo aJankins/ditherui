@@ -1,6 +1,6 @@
 use image::{ImageBuffer, Rgb, DynamicImage, Rgba, Frame};
 
-use crate::{utils::{image::{RgbImageRepr, RgbPixelRepr, get_dimensions_of_matrix, RgbaImageRepr, RgbaPixelRepr}, numops::map_to_2d}};
+use crate::utils::{image::{RgbImageRepr, RgbPixelRepr, get_dimensions_of_matrix, RgbaImageRepr, RgbaPixelRepr}, numops::map_to_2d};
 
 /// Defines an effect that can be applied onto `T`.
 /// 

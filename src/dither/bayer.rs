@@ -1,8 +1,7 @@
-use image::{Pixel};
 use ndarray::{concatenate, Array, Axis, Dim};
 use palette::Srgb;
 
-use crate::{utils::{image::{RgbImageRepr}}, colour::utils::quantize_rgb, effect::Effect};
+use crate::{utils::image::RgbImageRepr, colour::utils::quantize_rgb, effect::Effect};
 
 /// Represents the _ordered_ method of dithering. Compared to error propagation, this method is less accurate - however it
 /// results in a pattern that can be visually appealing.
