@@ -1,10 +1,22 @@
-# Image Effect Experiment
+# Image Effects
 
-This project started out as just me wanting to learn more about dithering and more image effects. After looking into algorithms and other code I've seen online, this is what I've got!
+This project is essentially a library for applying effects onto images. It makes heavy use of the `image` crate since it's the main image processing library for rust, and `palette` for helping with colour conversions and more - although the project started off with a custom made colour library.
 
-**Note:** You can technically use this as a library - but it's definitely not currently stable so you may experience major breakages. I have a separate repository at [image-tool-assortment](https://github.com/enbyss/image-tool-assortment) which shows multiple projects I'm working on *with* this library if you'd like to see examples - but if you use this library *(for now)* then be ready for breaking changes.
+Currently there's two major classes of effect, **dithering** which works on images and supports both **ordered** and **error propagation** methods, and **filters** such as brightness, contrast, saturation, etc. which work on individual pixels *(and therefore also on images)*.
 
-Feel free to open issues / pull requests / fork if you'd like! I'd love to grow this thing into something better!
+The following shows which effects are supported on what types.
+
+|         | dither | filter |
+| ------- | ------ | ------ |
+| `pixel` | no     | yes    |
+| `image` | yes    | yes    |
+| `gif`   | yes    | yes    |
+
+- `pixel` = `[u8; 3]` / `[u8; 4]`
+- `image` = `Vec<Vec<{pixel}>>` / (image) `DynamicImage` / (image) `ImageBuffer<Rgb(a)<u8>, Vec<u8>>`
+- `gif` = (image) `Frame`
+
+*(image): from the `image` crate.*
 
 ## Dithering
 
@@ -20,6 +32,29 @@ All other algorithms are variations on **error propagation** by using different 
 - the *amount of division*. Most algorithms split the error totally - but some like *Atkison* only propagate *some*.
 
 After this, each of these algorithms were effectively generated using a macro.
+
+There's two kinds of dithering: **Error propagation**, and **Ordered/Bayer**. The only similarity here is that they both will go pixel by pixel, turning them into the closest match in the palette. Measuring which colour is the closest match is done in a different module - `colour` - more details [here](#colours).
+
+#### Error Propagation
+
+For these algorithms, I want to thank [Tanner Helland](https://tannerhelland.com/2012/12/28/dithering-eleven-algorithms-source-code.html) and [Efron Licht](https://docs.rs/dither/latest/dither/) for their resources. Tanner made a write up on error propagation, including multiple methods that helped to understand the process, and Efron wrote the `dither` crate which served as an inspiration for this.
+
+So, for *error propagation* algorithms, after they find the closest match they will then calculate the **error** - which is essentially the `RGB` difference between the chosen colour and actual colour. This error is then
+propagated to nearby pixels according to what I call the **propagation matrix** and **portion amount**.
+
+The **propagation matrix** is more like a list of coordinates, in addition to how much of the error to propagate - in the form of `(dx, dy, portion)`. For example, `(1, 0, 5)` will send $\frac{5}{N}$ of the error to the next pixel on the right, where $N$ is the **portion amount**. Keep in mind that the error *does not need* to be distributed exactly - for example **Atkinson** uses 8 portions, but only propagates 6 of them. You can technically also *over-propagate*, though then you're just adding extra error to the pixels.
+
+#### Ordered / Bayer
+
+This one works very differently and starts to delve a lot more into the math. For example, here's part of the entire algorithm:
+
+$$
+c' = \textrm{nearest\_palette\_color}(c + r \times (M(x \textrm{ mod } y, y \textrm{ mod } n) - 1/2))
+$$
+
+Here, $c'$ is the new colour, $M$ is the *threshold map*, and $r$ is the amount of spread in color space. I use $r = \frac{255}{3}$ - though in the code it's $\frac{1}{3}$ since rgb values between `0.0` and `1.0` are used. If I'm honest, I don't fully remember where I got this value of $r$ from, but it seems to work quite well.
+
+As for the *threshold map*, it can be pre-calculated - as the only variable there is the matrix size, which usually comes in powers of two. For more on this, check out [the wikipedia page](https://en.wikipedia.org/wiki/Ordered_dithering) on ordered dithering. They can be pre-calculated, but this library supports *any arbitrary size*.
 
 ### Algorithms
 

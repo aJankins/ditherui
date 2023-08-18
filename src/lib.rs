@@ -88,7 +88,7 @@ pub mod dither;
 pub mod filter;
 
 /// Utilities. Mostly just for the test cases - will probably be removed.
-pub mod utils;
+mod utils;
 
 /// Colour related logic, such as distance functions, palettes, gradient generation, etc.
 pub mod colour;
