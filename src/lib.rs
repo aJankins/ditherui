@@ -13,58 +13,32 @@
 //! The *prelude* is useful for importing some common functionality, like the algorithms themselves
 //! alongside some traits.
 //! 
-//! # Traits and Extensibility
+//! # Effects
 //! 
-//! ## `Effect<T>` and `Affectable<E>`
+//! `Effect<T>` is the trait to implement here, since `Affectable<T, E>` will be automatically implemented.
 //! 
-//! Think of these as opposites - like `From<T>` and `Into<T>`. The first defines an effect that can be
-//! applied on `T`, whereas the second defines something that can have an effect `E` applied to it.
+//! Basically, `Effect<T>` defines an effect that can be applied on `T` - so in turn `Affectable` can depend on
+//! this implementation to attach an `.apply` method _onto_ `T` that accepts `Effect<T>`.
 //! 
-//! If you'd like to extend this library with your own effect, implement [`Effect<T>`](./trait.Effect.html) on it - where `T` is
-//! what it can be applied on. Once you do this, `T` will _automatically_ implement [`Affectable<E>`](./trait.Affectable.html), where
-//! `E` is your effect.
+//! In other words, if I implement `Effect<Image>` on an effect called `Brighten`, I can then call `.apply` on
+//! any `Image` and pass in a reference to `Brighten`.
 //! 
-//! Note that this doesn't go the opposite way - applying `Affectable<E>` on something won't implement
-//! `Effect<T>` due to conflicting implementation issues. However, if you _would_ like to define a new type
-//! to apply an effect on, that's where [`EffectInput<T>`](./trait.EffectInput.html) comes in.
+//! This also means that although you can define your own effects easily, the same isn't for new kinds of image.
+//! You can implement `Affectable`, but not `Effect` due to the external trait rule:
 //! 
-//! ## `EffectInput<T>`
+//! > When implementing a trait, you must either own _the trait_ or _the struct_.
 //! 
-//! This trait defines an _input_ to an effect. For example, implementing `EffectInput<Filter<'a>>` on T means
-//! that `Filter<'a>` accepts `T` as input. As a result, you also get the following implementations for free:
+//! Since external crates don't own `Effect<T>` _nor_ the effects provided by this library, this effectively locks
+//! you out of defining new `T`s directly.
 //! 
-//! - `impl Effect<T> for Filter<'a>`
-//! - `impl Affectable<Filter<'a>> for T`
+//! However, since most effects get implemented using an intermediate format, such as `[u8; 3]` for an RGB pixel or
+//! `Vec<Vec<[u8; 3]>>` for an image, theoretically you just need to convert whatever image/medium you'd like to apply
+//! effects on into one of these intermediate formats.
 //! 
-//! As you can see, `EffectInput<T>` is almost identical to `Affectable<T>`. The only difference being that you can 
-//! _actually_ implement it without conflicting implementations.
-//! 
-//! So for example, if you'd like to support _dithering_ for `MyType`, you can do this:
-//! 
-//! ```ignore
-//! impl<'a, I: EffectInput<Dither<'a>> for MyType { /* ... */ }
-//! ```
-//! 
-//! ...at which point you can call `.apply` on an instance of `MyType` and pass in a `Dither`.
-//! 
-//! ## Summary
-//! - If you want to add an effect `E` which works with an image `I`, implement `Effect<I>` for `E`.
-//! - If you want to add an image `I` that works with an effect `E`, implement `EffectInput<E>` for `I`.
-//!   - ...which will automatically implement `Effect<E>` for `I` as well.
-//! 
-//! ## Tips
-//! 
-//! ### Implementing `EffectInput` for existing effects
-//! _Because_ `[u8; 3]` is a valid `EffectInput<Filter>`, anything that can be reduced to a series of
-//! `RGB` values will have the actual effect logic readymade.
-//! 
-//! The same applies for `EffectInput<Dither>`, however it's more complicated because dithering requires
-//! a more complicated input. Specifically, a _2d matrix_ of RGB values (`[u8; 3]`). In other words
-//! you'll need to convert your type into a _2d matrix_ first (`Vec<Vec<[u8; 3]>>`) - which already
-//! implements `EffectInput<Dither>`.
-//! 
-//! To see examples for this, check out the implementations of `EffectInput<Dither>` and `EffectInput<Filter>` on
-//! `DynamicImage`.
+//! Also, when creating an effect you don't need to define every single image it's compatible too - as auto-implementation
+//! happens here as well. For example, if you implement an effect that can be applied on `[u8; 3]`, this will also result 
+//! in implementations for RGBA `[u8; 4]`, images, and beyond. As a result, it's always best to define an `Effect` on the simplest
+//! possible type.
 
 
 
