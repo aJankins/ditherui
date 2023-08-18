@@ -153,7 +153,6 @@ mod test {
             let (x, y) = image.dimensions();
             if max_dim < x.max(y) as usize {
                 let image = &image;let factor = max_dim as f32 / x.max(y) as f32;
-                let (x, y) = image.dimensions();
                 let mul = |int: u32, float: f32| (int as f32 * float) as u32;
                 image.resize(mul(x, factor), mul(y, factor), imageops::Nearest)
             } else { image }
@@ -270,7 +269,7 @@ mod test {
         for propagator in error_propagators.into_iter() {
             image.clone()
                 .apply(&propagator.with_palette(palette.clone()))
-                .save(format!("data/dither/{}{}", propagator.name, postfix))?;
+                .save(format!("data/dither/{}{}.png", propagator.name, postfix))?;
         }
 
         image.clone().apply(&Bayer::new(2, palette.clone()))

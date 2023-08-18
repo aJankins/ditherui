@@ -49,8 +49,8 @@ impl<F> Effect<RgbaImageRepr> for F where F: Effect<RgbImageRepr> {
 
         for y in 0..ys {
             for x in 0..xs {
-                let [r, g, b, _] = item[ys][xs];
-                rgb_repr[ys][xs] = [r, g, b];
+                let [r, g, b, _] = item[y][x];
+                rgb_repr[y][x] = [r, g, b];
             }
         }
 
@@ -58,8 +58,8 @@ impl<F> Effect<RgbaImageRepr> for F where F: Effect<RgbImageRepr> {
 
         for y in 0..ys {
             for x in 0..xs {
-                let [r, g, b] = rgb_repr[ys][xs];
-                output[ys][xs] = [r, g, b, item[ys][xs][3]];
+                let [r, g, b] = rgb_repr[y][x];
+                output[y][x] = [r, g, b, item[y][x][3]];
             }
         }
 

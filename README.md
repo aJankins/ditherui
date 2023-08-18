@@ -27,7 +27,6 @@ Currently supports the following dithering algorithms:
 
 |            **Name** | *1-bit*                                         | *RGB (Web-safe)*                                    | *RGB (8-bit)*                                    |
 | ------------------: | :---------------------------------------------- | :-------------------------------------------------- | :----------------------------------------------- |
-|               Basic | ![](./data/dither/basic-mono.png)               | ![](./data/dither/basic-web-safe.png)               | ![](./data/dither/basic-8-bit.png)               |
 |     Floyd-Steinberg | ![](./data/dither/floyd-steinberg-mono.png)     | ![](./data/dither/floyd-steinberg-web-safe.png)     | ![](./data/dither/floyd-steinberg-8-bit.png)     |
 | Jarvis-Judice-Ninke | ![](./data/dither/jarvis-judice-ninke-mono.png) | ![](./data/dither/jarvis-judice-ninke-web-safe.png) | ![](./data/dither/jarvis-judice-ninke-8-bit.png) |
 |              Stucki | ![](./data/dither/stucki-mono.png)              | ![](./data/dither/stucki-web-safe.png)              | ![](./data/dither/stucki-8-bit.png)              |
