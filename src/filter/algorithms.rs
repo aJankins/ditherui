@@ -1,125 +1,132 @@
 use image::{DynamicImage, ImageBuffer, Rgb, Frame, Rgba};
 use palette::Srgb;
 
-use crate::{Effect, EffectInput};
+use crate::{utils::image::RgbPixelRepr, effect::Effect};
 
 use super::raw::{contrast, gradient_map, quantize_hue, brighten, saturate, shift_hue, multiply_hue};
 
 pub const CHROMA_BOUND: f32 = 128.0;
 
-/// Algorithms for applying filters to an image.
-pub enum Filter<'a> {
-    /// Rotates the hue based on the amount of degrees passed.
-    RotateHue(f32),
-    /// Modifies the contrast of the image.
-    ///
-    /// - `>1.0`: adds contrast to image.
-    /// - `0.0 ~ 1.0`: reduces contrast to image.
-    /// - `<0.0`: starts inverting the image - with `-1.0` being total inversion.
-    Contrast(f32),
-    /// Modifies the brightness of the image.
-    ///
-    /// This value can range from `-1.0`, which turns all pixels black, and `1.0`, which makes
-    /// all pixels white.
-    Brighten(f32),
-    /// Modifies the saturation of the image.
-    ///
-    /// This value can range from `-1.0`, which removes all saturation, and `1.0`, which maximizes
-    /// all saturation.
-    /// 
-    /// Internally, `Saturate(1.0)` would mean setting each pixel to `128.0 chroma` in LCH terms -
-    /// despite Chroma being technically unbounded.
-    /// 
-    /// This may change in the future.
-    Saturate(f32),
-    /// Applies a gradient map to the image.
-    ///
-    /// The gradient map is defined as a slice of tuples containing the *colour* and its threshold.
-    /// Each pixel in the image will be mapped to the gradient using its luminance value.
-    ///
-    /// The threshold must be between `0.0` and `1.0` - you can technically use other values but the results
-    /// may be a bit weird.
-    ///
-    /// As an example, to turn an image grayscale you could pass the colour black at `0.0` and the colour
-    /// white at `1.0`.
-    GradientMap(&'a [(Srgb, f32)]),
-    /// Quantizes the hue of each pixel to one of the hues passed.
-    ///
-    /// This *only* changes the hue - useful for defining a colour
-    /// scheme without losing luminance/saturation detail.
-    QuantizeHue(&'a [f32]),
-    /// Multiplies the hue of each pixel by the factor passed.
-    MultiplyHue(f32),
+/// Rotates the hue based on the amount of degrees passed.
+pub struct HueRotate(pub f32);
+
+/// Modifies the contrast of the image.
+///
+/// - `>1.0`: adds contrast to image.
+/// - `0.0 ~ 1.0`: reduces contrast to image.
+/// - `<0.0`: starts inverting the image - with `-1.0` being total inversion.
+pub struct Contrast(pub f32);
+
+/// Modifies the brightness of the image.
+///
+/// This value can range from `-1.0`, which turns all pixels black, and `1.0`, which makes
+/// all pixels white.
+pub struct Brighten(pub f32);
+
+/// Modifies the saturation of the image.
+///
+/// This value can range from `-1.0`, which removes all saturation, and `1.0`, which maximizes
+/// all saturation.
+/// 
+/// Internally, `Saturate(1.0)` would mean setting each pixel to `128.0 chroma` in LCH terms -
+/// despite Chroma being technically unbounded.
+/// 
+/// This may change in the future.
+pub struct Saturate(pub f32);
+
+/// Applies a gradient map to the image.
+///
+/// The gradient map is defined as a slice of tuples containing the *colour* and its threshold.
+/// Each pixel in the image will be mapped to the gradient using its luminance value.
+///
+/// The threshold must be between `0.0` and `1.0` - you can technically use other values but the results
+/// may be a bit weird.
+///
+/// As an example, to turn an image grayscale you could pass the colour black at `0.0` and the colour
+/// white at `1.0`.
+pub struct GradientMap {
+    map: Vec<(Srgb, f32)>
 }
 
-// rgb pixel
-impl<'a> EffectInput<Filter<'a>> for [u8; 3] {
-    fn run_through(&self, algorithm: &Filter) -> Self {
-        let clone = self.clone();
-        match algorithm {
-            Filter::RotateHue(degrees) => shift_hue(clone, *degrees),
-            Filter::Contrast(amount) => contrast(clone, *amount),
-            Filter::Brighten(amount) => brighten(clone, *amount),
-            Filter::Saturate(amount) => saturate(clone, *amount),
-            Filter::QuantizeHue(hues) => quantize_hue(clone, hues),
-            Filter::GradientMap(gradient) => gradient_map(clone, gradient).map_or(clone, |colour| colour.into_format().into()),
-            Filter::MultiplyHue(factor) => multiply_hue(clone, *factor),
-        }
+impl GradientMap {
+    pub fn new() -> Self {
+        Self { map: Vec::new() }
+    }
+
+    pub fn with_map(map: Vec<(Srgb, f32)>) -> Self {
+        Self { map }
+    }
+
+    pub fn add_entry(&mut self, colour: Srgb, luminance: f32) -> &mut Self {
+        self.map.push((colour, luminance));
+        self
     }
 }
 
-// rgba pixel
-impl<'a> EffectInput<Filter<'a>> for [u8; 4] {
-    fn run_through(&self, algorithm: &Filter) -> Self {
-        let [r, g, b, a] = self;
+/// Quantizes the hue of each pixel to one of the hues passed.
+///
+/// This *only* changes the hue - useful for defining a colour
+/// scheme without losing luminance/saturation detail.
+pub struct QuantizeHue {
+    hues: Vec<f32>
+}
 
-        let [r, g, b] = [*r, *g, *b].run_through(algorithm);
+impl QuantizeHue {
+    pub fn new() -> Self {
+        Self { hues: Vec::new() }
+    }
 
-        [r, g, b, *a]
+    pub fn with_hues(hues: Vec<f32>) -> Self {
+        Self { hues }
+    }
+
+    pub fn add_hue(&mut self, hue: f32) -> &mut Self {
+        self.hues.push(hue);
+        self
     }
 }
 
-impl<'a> EffectInput<Filter<'a>> for ImageBuffer<Rgb<u8>, Vec<u8>> {
-    fn run_through(&self, effect: &Filter<'a>) -> Self {
-        let mut output = self.clone();
-        for (_, _, pixel) in output.enumerate_pixels_mut() {
-            pixel.0 = pixel.0.run_through(effect)
-        }
-        output
+/// Multiplies the hue of each pixel by the factor passed.
+pub struct MultiplyHue(pub f32);
+
+impl Effect<RgbPixelRepr> for HueRotate {
+    fn affect(&self, item: RgbPixelRepr) -> RgbPixelRepr {
+        shift_hue(item, self.0)
     }
 }
 
-impl<'a> EffectInput<Filter<'a>> for ImageBuffer<Rgba<u8>, Vec<u8>> {
-    fn run_through(&self, effect: &Filter<'a>) -> Self {
-        let mut output = self.clone();
-        for (_, _, pixel) in output.enumerate_pixels_mut() {
-            pixel.0 = pixel.0.run_through(effect)
-        }
-        output
+impl Effect<RgbPixelRepr> for Contrast {
+    fn affect(&self, item: RgbPixelRepr) -> RgbPixelRepr {
+        contrast(item, self.0)
     }
 }
 
-impl<'a> EffectInput<Filter<'a>> for DynamicImage {
-    fn run_through(&self, effect: &Filter) -> Self {
-        match self {
-            DynamicImage::ImageRgb8(img) 
-                => DynamicImage::from(img.run_through(effect)),
-
-            DynamicImage::ImageRgba8(img) 
-                => DynamicImage::from(img.run_through(effect)),
-
-            _ => DynamicImage::ImageRgb8(self.clone().into_rgb8().run_through(effect))
-        }
+impl Effect<RgbPixelRepr> for Brighten {
+    fn affect(&self, item: RgbPixelRepr) -> RgbPixelRepr {
+        brighten(item, self.0)
     }
 }
 
-impl<'a> EffectInput<Filter<'a>> for Frame {
-    fn run_through(&self, effect: &Filter<'a>) -> Self {
-        let left = self.left();
-        let top = self.top();
-        let delay = self.delay();
+impl Effect<RgbPixelRepr> for Saturate {
+    fn affect(&self, item: RgbPixelRepr) -> RgbPixelRepr {
+        saturate(item, self.0)
+    }
+}
 
-        let new_buf = self.buffer().run_through(effect);
-        Frame::from_parts(new_buf, left, top, delay)
+impl Effect<RgbPixelRepr> for QuantizeHue {
+    fn affect(&self, item: RgbPixelRepr) -> RgbPixelRepr {
+        quantize_hue(item, &self.hues)
+    }
+}
+
+impl Effect<RgbPixelRepr> for GradientMap {
+    fn affect(&self, item: RgbPixelRepr) -> RgbPixelRepr {
+        gradient_map(item, &self.map).map_or(item, |colour| colour.into_format().into())
+    }
+}
+
+impl Effect<RgbPixelRepr> for MultiplyHue {
+    fn affect(&self, item: RgbPixelRepr) -> RgbPixelRepr {
+        multiply_hue(item, self.0)
     }
 }

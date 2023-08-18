@@ -1,10 +1,16 @@
-/// Contains all dithering algorithms - in terms of API.
-pub mod algorithms;
-
-pub use algorithms::Dither;
-
 /// Contains all the dithering logic for the error propagation based algorithms.
 pub mod error;
 
-pub mod basic;
+/// Contains logic for Ordered / Bayer dithering.
 pub mod bayer;
+
+pub use error::{
+    FLOYD_STEINBERG,
+    JARVIS_JUDICE_NINKE,
+    ATKINSON,
+    BURKES,
+    STUCKI,
+    SIERRA,
+    SIERRA_TWO_ROW,
+    SIERRA_LITE,
+};
