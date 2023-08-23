@@ -104,6 +104,9 @@ impl QuantizeHue {
 /// Multiplies the hue of each pixel by the factor passed.
 pub struct MultiplyHue(pub f32);
 
+/// Inverts the colours of the image. Effectively the same as `Contrast(-1.0)`
+pub struct Invert;
+
 impl Effect<RgbPixelRepr> for HueRotate {
     fn affect(&self, item: RgbPixelRepr) -> RgbPixelRepr {
         shift_hue(item, self.0)
@@ -143,5 +146,11 @@ impl Effect<RgbPixelRepr> for GradientMap {
 impl Effect<RgbPixelRepr> for MultiplyHue {
     fn affect(&self, item: RgbPixelRepr) -> RgbPixelRepr {
         multiply_hue(item, self.0)
+    }
+}
+
+impl Effect<RgbPixelRepr> for Invert {
+    fn affect(&self, item: RgbPixelRepr) -> RgbPixelRepr {
+        Contrast(-1.0).affect(item)
     }
 }

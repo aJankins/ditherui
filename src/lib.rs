@@ -260,6 +260,10 @@ mod test {
             .apply(&filters::MultiplyHue(12.0))
             .save("data/colour/multiply-hue.12.0.png")?;
 
+        image.clone()
+            .apply(&filters::Invert)
+            .save("data/colour/invert.png")?;
+
         Ok(())
     }
 
