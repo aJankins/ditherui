@@ -87,6 +87,9 @@ pub mod dither;
 /// Filters that can be applied to the image - such as brightness, contrast, and more.
 pub mod filter;
 
+/// Databending methods, which work by modifying the raw bytes.
+pub mod databend;
+
 /// Utilities. Mostly just for the test cases - will probably be removed.
 mod utils;
 
