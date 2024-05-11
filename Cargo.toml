@@ -1,7 +1,7 @@
 [package]
 name = "image-effects"
 description = "An assortment of effects that can be applied to an image with the help of `image`."
-version = "0.1.0"
+version = "0.2.0"
 license = "MPL-2.0"
 readme = "README.md"
 keywords = ["image", "effects", "dither"]
@@ -12,12 +12,21 @@ maintenance = { status = "actively-developed" }
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = ["random", "shift"]
+random = ["dep:rand", "dep:rand_xorshift", "dep:rand_core"]
+shift = ["dep:moveslice"]
+
 [dependencies]
 image = "0.24.6"
 num = "0.4.1" # may not be used
 ndarray = "0.15.6"
 once_cell = "1.18.0"
 palette = "0.7.2"
+rand = { version = "0.8.5", optional = true }
+rand_xorshift = { version = "0.3.0", optional = true }
+rand_core = { version = "0.6.4", optional = true }
+moveslice = { version = "2.0.1", optional = true }
 
 [dev-dependencies]
 base64 = "0.21.2"

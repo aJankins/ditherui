@@ -11,6 +11,12 @@ pub trait Effect<T> {
     fn affect(&self, item: T) -> T;
 }
 
+/// Defines an effect that can be applied on only a byteslice.
+pub trait Corruption<V: AsMut<[u8]>> {
+    fn corrupt(&self, item: V);
+    fn get_name(&self) -> String;
+}
+
 /// Defines something that can be affected.
 /// 
 /// This is auto-implemented for any `T` and `F` where `F`
@@ -27,6 +33,16 @@ pub trait Affectable<T, F: Effect<T>> {
 impl<T, F> Affectable<T, F> for T where F: Effect<T> {
     fn apply(self, effect: &F) -> Self {
         effect.affect(self)
+    }
+}
+
+pub trait Corruptable<V: AsMut<[u8]>, C: Corruption<V>> {
+    fn corrupt_with(self, corruption: C);
+}
+
+impl<V: AsMut<[u8]>, C> Corruptable<V, C> for V where C: Corruption<V> {
+    fn corrupt_with(self, corruption: C) {
+        corruption.corrupt(self)
     }
 }
 

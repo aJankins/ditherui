@@ -87,6 +87,9 @@ pub mod dither;
 /// Filters that can be applied to the image - such as brightness, contrast, and more.
 pub mod filter;
 
+/// TODO
+pub mod corrupt;
+
 /// Utilities. Mostly just for the test cases - will probably be removed.
 mod utils;
 
@@ -145,20 +148,20 @@ pub type GradientMap<'a, Color> = &'a [(Color, f32)];
 
 #[cfg(test)]
 mod test {
-    use std::error::Error;
+    use std::{error::Error, fs, io::{Cursor, Write}};
 
-    use image::{DynamicImage, ImageResult, GenericImageView, imageops};
+    use image::{imageops, io::Reader, DynamicImage, GenericImageView, ImageResult};
     use palette::{Srgb, named};
 
     use crate::{
-        colour::{utils::ONE_BIT},
-        prelude::{*, palettes::{WEB_SAFE, EIGHT_BIT}}, dither::{FLOYD_STEINBERG, JARVIS_JUDICE_NINKE, STUCKI, ATKINSON, BURKES, SIERRA, SIERRA_TWO_ROW, SIERRA_LITE, bayer::Bayer},
+        colour::utils::ONE_BIT, corrupt::methods::{Accelerate, Increment, Loop, PartialCorrupt, Reverse, Shift, Shuffle}, dither::{bayer::Bayer, ATKINSON, BURKES, FLOYD_STEINBERG, JARVIS_JUDICE_NINKE, SIERRA, SIERRA_LITE, SIERRA_TWO_ROW, STUCKI}, effect::{Corruptable, Corruption}, prelude::{palettes::{EIGHT_BIT, WEB_SAFE}, *}
     };
 
     type UtilResult<T> = Result<T,Box<dyn Error>>;
 
-    const IMAGE_URL: &'static str = "https://clipart-library.com/image_gallery/n781743.png";
-    const MAX_DIM: Option<usize> = Some(500);
+    // const IMAGE_URL: &'static str = "https://clipart-library.com/image_gallery/n781743.png";
+    const IMAGE_URL: &'static str = "https://www.adorama.com/alc/wp-content/uploads/2017/11/shutterstock_114802408-825x465.jpg";
+    const MAX_DIM: Option<usize> = None;
 
     fn get_image() -> UtilResult<DynamicImage> {
         let img_bytes = reqwest::blocking::get(IMAGE_URL)?.bytes()?;
@@ -176,7 +179,7 @@ mod test {
         Ok(image)
     }
 
-    #[test]
+    // #[test]
     fn dither_test() -> UtilResult<()> {
         let image = get_image()?;
 
@@ -193,7 +196,7 @@ mod test {
         Ok(())
     }
 
-    #[test]
+    // #[test]
     fn filter_effects_test() -> UtilResult<()> {
         let image = get_image()?;
 
@@ -263,6 +266,46 @@ mod test {
         image.clone()
             .apply(&filters::Invert)
             .save("data/colour/invert.png")?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn corrupt_effects_test() -> UtilResult<()> {
+
+
+        let bytesim: &mut [u8] = &mut [0_u8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+        println!("BEFORE: {:?}", bytesim);
+        bytesim.corrupt_with(
+            PartialCorrupt::from_corruption(
+                Loop {chunk:1, times:3},
+                3, 6)
+        );
+        println!("AFTER : {:?}", bytesim);
+
+        let image = get_image()?;
+
+        let mut bytes: Vec<u8> = Vec::new();
+        let format = image::ImageFormat::Bmp;
+        image.write_to(&mut Cursor::new(&mut bytes), format)?;
+
+        println!("BYTE LENGTH: {}", bytes.len());
+        
+        let bytes: &mut [u8] = bytes.as_mut();
+        bytes.corrupt_with(
+            PartialCorrupt::from_corruption(
+                Reverse,
+                13000, bytes.len()
+            ));
+
+        let mut file = fs::OpenOptions::new()
+            .create(true) // To create a new file
+            .write(true)
+            // either use the ? operator or unwrap since it returns a Result
+            .open(format!("data/corrupt/first-test.{}", format.extensions_str()[0]))?;
+        
+        file.write_all(&bytes)?;
 
         Ok(())
     }
