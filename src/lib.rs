@@ -160,7 +160,8 @@ mod test {
 
     type UtilResult<T> = Result<T,Box<dyn Error>>;
 
-    const IMAGE_URL: &'static str = "https://clipart-library.com/image_gallery/n781743.png";
+    // From Unsplash, and more specifically Dima Solomin.
+    const IMAGE_URL: &'static str = "https://images.unsplash.com/photo-1736457908762-d6ae9e5fb593?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
     const MAX_DIM: Option<usize> = Some(500);
 
     fn get_image() -> UtilResult<DynamicImage> {

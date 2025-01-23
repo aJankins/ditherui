@@ -1,4 +1,4 @@
-use palette::{Srgb, FromColor, Lch, SetHue, Lighten, Darken, ShiftHue, LabHue};
+use palette::{Darken, FromColor, IntoColor, LabHue, Lch, Lighten, Mix, SetHue, ShiftHue, Srgb};
 
 use crate::colour::utils;
 
@@ -96,28 +96,28 @@ fn _gradient_map_u8<U>(rgb: [u8; 3], gradient: &[(U, f32)]) -> Option<U>
     let curr_col = gradient.get(index);
 
     if prev_col.and(curr_col).is_some() {
+        
+        // for anyone seeing this code - don't judge me too hard. this is basically a duct-tape approach
+        // in order to mix colours in LCH instead of RGB, since RGB mixing sucks horrendously.
+        // cleaning this up would mean going into the Trait Tangle that might be a massive refactor.
+        // so y'know, leaving that for another day.
+
         let (c_col, c_th) = curr_col.unwrap();
         let (p_col, p_th) = prev_col.unwrap();
 
         let c_col: Srgb = (*c_col).into();
         let p_col: Srgb = (*p_col).into();
 
-        let c_dist = c_th - l;
-        let p_dist = l - p_th;
+        let c_col: Lch = c_col.into_color();
+        let p_col: Lch = p_col.into_color();
 
-        let c_ratio = 1.0 - (c_dist / (c_dist + p_dist));
-        let p_ratio = 1.0 - (p_dist / (c_dist + p_dist));
+        let threshold_diff = c_th - p_th;
+        let ratio = (l - p_th) / threshold_diff;
 
-        let (c_r, c_g, c_b) = c_col.into_components();
-        let (p_r, p_g, p_b) = p_col.into_components();
+        let new_col = p_col.mix(c_col, ratio);
+        let new_col: Srgb = new_col.into_color();
 
-        let (new_r, new_g, new_b) = (
-            (c_ratio * c_r + p_ratio * p_r),
-            (c_ratio * c_g + p_ratio * p_g),
-            (c_ratio * c_b + p_ratio * p_b),
-        );
-
-        Some(U::from(Srgb::from_components((new_r, new_g, new_b,))))
+        Some(U::from(new_col.into()))
 
     } else if curr_col.is_some() {
         curr_col.map(|tup| tup.0)
